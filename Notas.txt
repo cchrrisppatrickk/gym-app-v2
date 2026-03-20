@@ -1,0 +1,36 @@
+Inicializar la Base de Datos
+sudo postgresql-setup --initdb
+
+# Inicia el servicio de PostgreSQL inmediatamente.
+sudo systemctl start postgresql
+
+# Habilita el servicio para que se inicie automáticamente al arrancar el sistema.
+sudo systemctl enable postgresql
+
+# ver estado del servicio
+sudo systemctl status postgresql
+# detener el servicio
+sudo systemctl stop postgresql
+# evitar inicio automático
+sudo systemctl disable postgresql
+# reiniciar el servicio
+sudo systemctl restart postgresql
+
+🔐 Paso 4: Crear la Base de Datos y la Contraseña
+# Inicia sesión en la terminal como el usuario de Postgres:
+sudo -u postgres psql
+
+# Entra a la consola interactiva de la base de datos:
+psql
+
+# Crear la base de datos:
+CREATE DATABASE gymx_db;
+
+# Crear un usuario y contraseña para la base de datos:
+CREATE USER gym_user WITH PASSWORD 'admin123';
+
+# Otorgar permisos al usuario sobre la base de datos:
+GRANT ALL PRIVILEGES ON DATABASE gymx_db TO gym_user;
+
+# Salir de la consola de psql:
+\q
