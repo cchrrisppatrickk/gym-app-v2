@@ -1,1 +1,1 @@
-{"version":3,"file":"create-shift.dto.js","sourceRoot":"","sources":["../../../../src/catalog/dto/create-shift.dto.ts"],"names":[],"mappings":";;;AAAA,MAAa,cAAc;IACvB,IAAI,CAAS;IACb,SAAS,CAAgB;IACzB,OAAO,CAAgB;CAC1B;AAJD,wCAIC"}
+{"version":3,"file":"create-shift.dto.js","sourceRoot":"","sources":["../../../../src/catalog/dto/create-shift.dto.ts"],"names":[],"mappings":";;;AAAA,MAAa,cAAc;IACvB,IAAI,CAAU;IACd,SAAS,CAAiB;IAC1B,OAAO,CAAiB;CAC3B;AAJD,wCAIC"}

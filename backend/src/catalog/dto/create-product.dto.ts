@@ -1,7 +1,7 @@
 export class CreateProductDto {
-    name: string;
+    name!: string;
     category?: string;
-    price: number;
+    price!: number;
     barcode?: string;
     stock?: number;
 }

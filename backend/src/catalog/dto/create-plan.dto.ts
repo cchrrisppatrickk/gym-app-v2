@@ -1,7 +1,7 @@
 export class CreatePlanDto {
-    name: string;
-    durationDays: number;
-    price: number;
+    name!: string;
+    durationDays!: number;
+    price!: number;
     allowsFreeze?: boolean;
     description?: string;
 }
