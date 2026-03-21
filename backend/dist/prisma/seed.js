@@ -33,53 +33,45 @@ var __importStar = (this && this.__importStar) || (function () {
     };
 })();
 Object.defineProperty(exports, "__esModule", { value: true });
-require("dotenv/config");
 const client_1 = require("@prisma/client");
-const adapter_pg_1 = require("@prisma/adapter-pg");
-const pg_1 = require("pg");
 const bcrypt = __importStar(require("bcrypt"));
-const pool = new pg_1.Pool({ connectionString: process.env.DATABASE_URL });
-const adapter = new adapter_pg_1.PrismaPg(pool);
-const prisma = new client_1.PrismaClient({ adapter });
+const prisma = new client_1.PrismaClient({});
 async function main() {
-    console.log('--- Start Seeding ---');
-    const rolesCode = ['Admin', 'Empleado', 'Cliente'];
-    const roleModels = [];
-    for (const roleName of rolesCode) {
-        const role = await prisma.role.upsert({
-            where: { name: roleName },
-            update: {},
-            create: { name: roleName },
-        });
-        roleModels.push(role);
-        console.log(`Rol ${roleName} verificado/creado.`);
-    }
-    const adminRole = roleModels.find((r) => r.name === 'Admin');
-    if (!adminRole) {
-        throw new Error('Admin role not found after upsert');
-    }
+    const roleAdmin = await prisma.role.upsert({
+        where: { name: 'Admin' },
+        update: {},
+        create: { name: 'Admin' },
+    });
+    const roleEmpleado = await prisma.role.upsert({
+        where: { name: 'Empleado' },
+        update: {},
+        create: { name: 'Empleado' },
+    });
+    const roleCliente = await prisma.role.upsert({
+        where: { name: 'Cliente' },
+        update: {},
+        create: { name: 'Cliente' },
+    });
     const hashedPassword = await bcrypt.hash('admin123', 10);
-    const adminUser = await prisma.user.upsert({
+    const admin = await prisma.user.upsert({
         where: { email: 'admin@gymx.com' },
         update: {},
         create: {
             email: 'admin@gymx.com',
             fullName: 'Administrador Maestro',
             password: hashedPassword,
-            roleId: adminRole.id,
-            isActive: true,
+            roleId: roleAdmin.id,
         },
     });
-    console.log('Usuario administrador inicial verificado/creado:', adminUser.email);
-    console.log('--- Seeding Finished ---');
+    console.log('🌱 Base de datos inicializada con éxito.');
+    console.log({ admin });
 }
 main()
     .catch((e) => {
-    console.error('Error durante el seed:', e);
+    console.error(e);
     process.exit(1);
 })
     .finally(async () => {
     await prisma.$disconnect();
-    await pool.end();
 });
 //# sourceMappingURL=seed.js.map

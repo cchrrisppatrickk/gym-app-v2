@@ -1,61 +1,51 @@
-import 'dotenv/config';
 import { PrismaClient } from '@prisma/client';
-import { PrismaPg } from '@prisma/adapter-pg';
-import { Pool } from 'pg';
 import * as bcrypt from 'bcrypt';
 
-const pool = new Pool({ connectionString: process.env.DATABASE_URL });
-const adapter = new PrismaPg(pool as any);
-const prisma = new PrismaClient({ adapter });
+const prisma = new PrismaClient({});
 
 async function main() {
-    console.log('--- Start Seeding ---');
-
     // 1. Crear Roles base
-    const rolesCode = ['Admin', 'Empleado', 'Cliente'];
-    const roleModels = [];
+    const roleAdmin = await prisma.role.upsert({
+        where: { name: 'Admin' },
+        update: {},
+        create: { name: 'Admin' },
+    });
 
-    for (const roleName of rolesCode) {
-        const role = await prisma.role.upsert({
-            where: { name: roleName },
-            update: {},
-            create: { name: roleName },
-        });
-        roleModels.push(role);
-        console.log(`Rol ${roleName} verificado/creado.`);
-    }
+    const roleEmpleado = await prisma.role.upsert({
+        where: { name: 'Empleado' },
+        update: {},
+        create: { name: 'Empleado' },
+    });
 
-    const adminRole = roleModels.find((r) => r.name === 'Admin');
+    const roleCliente = await prisma.role.upsert({
+        where: { name: 'Cliente' },
+        update: {},
+        create: { name: 'Cliente' },
+    });
 
-    if (!adminRole) {
-        throw new Error('Admin role not found after upsert');
-    }
-
-    // 2. Encriptar contraseña y crear Administrador inicial
+    // 2. Crear Usuario Admin Maestro
     const hashedPassword = await bcrypt.hash('admin123', 10);
 
-    const adminUser = await prisma.user.upsert({
+    const admin = await prisma.user.upsert({
         where: { email: 'admin@gymx.com' },
         update: {},
         create: {
             email: 'admin@gymx.com',
             fullName: 'Administrador Maestro',
             password: hashedPassword,
-            roleId: adminRole.id,
-            isActive: true,
+            roleId: roleAdmin.id,
         },
     });
 
-    console.log('Usuario administrador inicial verificado/creado:', adminUser.email);
-    console.log('--- Seeding Finished ---');
+    console.log('🌱 Base de datos inicializada con éxito.');
+    console.log({ admin });
 }
 
 main()
     .catch((e) => {
-        console.error('Error durante el seed:', e);
+        console.error(e);
         process.exit(1);
     })
     .finally(async () => {
         await prisma.$disconnect();
-        await pool.end();
     });
