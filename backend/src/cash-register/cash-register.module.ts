@@ -7,5 +7,6 @@ import { CashRegisterService } from './cash-register.service';
   imports: [PrismaModule],
   controllers: [CashRegisterController],
   providers: [CashRegisterService],
+  exports: [CashRegisterService],
 })
 export class CashRegisterModule { }

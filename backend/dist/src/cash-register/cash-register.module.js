@@ -19,6 +19,7 @@ exports.CashRegisterModule = CashRegisterModule = __decorate([
         imports: [prisma_module_1.PrismaModule],
         controllers: [cash_register_controller_1.CashRegisterController],
         providers: [cash_register_service_1.CashRegisterService],
+        exports: [cash_register_service_1.CashRegisterService],
     })
 ], CashRegisterModule);
 //# sourceMappingURL=cash-register.module.js.map
