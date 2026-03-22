@@ -1,12 +1,18 @@
 "use client";
 
-import React from "react";
+import React, { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { loginSchema, type LoginFormValues } from "@/lib/validations";
 import { User, Lock, ArrowRight } from "lucide-react";
+import { useRouter } from "next/navigation";
+import { authService } from "@/services/auth.service";
+import { jwtDecode } from "jwt-decode";
 
 export default function LoginPage() {
+    const router = useRouter();
+    const [serverError, setServerError] = useState("");
+
     const {
         register,
         handleSubmit,
@@ -19,16 +25,32 @@ export default function LoginPage() {
         },
     });
 
-    const onSubmit = (values: LoginFormValues) => {
-        console.log("Login form submitted with:", values);
-        // TODO: Connect with login service in Phase 2.2.2
+    const onSubmit = async (values: LoginFormValues) => {
+        setServerError("");
+        try {
+            const token = await authService.login(values.email, values.password);
+            if (token) {
+                const decoded = jwtDecode<{ roleId: number }>(token);
+
+                // Redirección basada en roles
+                if (decoded.roleId === 1) {
+                    router.push("/admin/dashboard");
+                } else if (decoded.roleId === 2) {
+                    router.push("/recepcion/caja");
+                } else if (decoded.roleId === 3) {
+                    router.push("/mi-perfil");
+                } else {
+                    router.push("/");
+                }
+            }
+        } catch (error: any) {
+            console.error("Login error:", error);
+            setServerError("Credenciales incorrectas o error en el servidor.");
+        }
     };
 
     return (
         <div className="flex min-h-screen flex-col items-center justify-center bg-zinc-950 px-4 text-white">
-            <div className="bg-red-500 p-4 text-white font-bold text-center w-full max-w-md rounded-lg mb-8">
-                PRUEBA TAILWIND (NUCLEAR FIX)
-            </div>
             <div className="w-full max-w-md space-y-8">
                 {/* Header/Title */}
                 <div className="text-center">
@@ -95,7 +117,7 @@ export default function LoginPage() {
                             )}
                         </div>
 
-                        {/* Forgot Password Link (Visual placeholder) */}
+                        {/* Forgot Password Link */}
                         <div className="flex items-center justify-end">
                             <button
                                 type="button"
@@ -104,6 +126,13 @@ export default function LoginPage() {
                                 ¿Olvidaste tu contraseña?
                             </button>
                         </div>
+
+                        {/* Server Error Message */}
+                        {serverError && (
+                            <div className="rounded-lg bg-red-500/10 p-3 text-center text-sm font-semibold text-red-500 border border-red-500/20">
+                                {serverError}
+                            </div>
+                        )}
 
                         {/* Submit Button */}
                         <button
@@ -123,7 +152,7 @@ export default function LoginPage() {
                     </form>
                 </div>
 
-                {/* Footer info (Visual placeholder) */}
+                {/* Footer info */}
                 <p className="text-center text-xs text-zinc-500">
                     Gym-X Control © 2026 | Sistema de Gestión de Gimnasios.
                 </p>

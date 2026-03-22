@@ -1,51 +1,24 @@
-import apiClient from '../lib/apiClient';
+import apiClient from '@/lib/apiClient';
 
-/**
- * Servicio de autenticación para Gym-X Control.
- * Maneja el inicio de sesión y cierre de sesión.
- */
-
-// Siguiendo la regla de espejar DTOs del backend
-export interface LoginResponse {
-    access_token: string;
-    user: {
-        id: string;
-        email: string;
-        role: string;
-        // Otros campos que devuelva el backend
-    };
-}
-
-/**
- * Autentica al usuario con email y contraseña.
- * El token se guarda en el interceptor de la API o se maneja aquí.
- * @param email 
- * @param password 
- */
-export async function login(email: string, password: string): Promise<LoginResponse | null> {
-    try {
-        const { data } = await apiClient.post<LoginResponse>('/auth/login', {
-            email,
-            password,
-        });
-
-        if (data.access_token) {
-            localStorage.setItem('gymx_token', data.access_token);
+export const authService = {
+    login: async (email: string, password: string) => {
+        const response = await apiClient.post('/auth/login', { email, password });
+        const token = response.data.access_token;
+        if (token) {
+            localStorage.setItem('gymx_token', token);
         }
-
-        return data;
-    } catch (error) {
-        console.error('Error in auth service login:', error);
-        throw error;
+        return token;
+    },
+    logout: () => {
+        localStorage.removeItem('gymx_token');
+        if (typeof window !== 'undefined') {
+            window.location.href = '/login';
+        }
+    },
+    getToken: () => {
+        if (typeof window !== 'undefined') {
+            return localStorage.getItem('gymx_token');
+        }
+        return null;
     }
-}
-
-/**
- * Cierra la sesión del usuario eliminando el token.
- */
-export function logout(): void {
-    localStorage.removeItem('gymx_token');
-    if (typeof window !== 'undefined') {
-        window.location.href = '/login';
-    }
-}
+};
