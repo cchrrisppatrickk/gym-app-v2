@@ -112,7 +112,7 @@ export default function GestionProductos() {
                                     ) : (
                                         products.map((product) => (
                                             <tr key={product.id} className="transition-colors hover:bg-zinc-800/50">
-                                                <td className="px-6 py-4 font-mono text-zinc-500">{product.id.substring(0, 8)}...</td>
+                                                <td className="px-6 py-4 font-mono text-zinc-500">#{product.id}</td>
                                                 <td className="px-6 py-4 font-medium text-zinc-100">{product.name}</td>
                                                 <td className="px-6 py-4">
                                                     <span className="inline-flex rounded-full bg-zinc-800 px-2 py-1 text-xs font-medium text-zinc-300">
