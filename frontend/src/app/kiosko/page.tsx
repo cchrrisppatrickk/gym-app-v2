@@ -179,8 +179,8 @@ export default function Kiosko() {
                                             onClick={() => addToCart(product)}
                                             disabled={product.stock <= 0}
                                             className={`relative flex flex-col items-start justify-between rounded-xl border p-4 text-left transition-all ${product.stock > 0
-                                                    ? "border-zinc-800 bg-zinc-900 hover:border-emerald-500/50 hover:bg-zinc-800/80 active:scale-95 cursor-pointer"
-                                                    : "border-red-900/30 bg-red-900/10 opacity-60 cursor-not-allowed"
+                                                ? "border-zinc-800 bg-zinc-900 hover:border-emerald-500/50 hover:bg-zinc-800/80 active:scale-95 cursor-pointer"
+                                                : "border-red-900/30 bg-red-900/10 opacity-60 cursor-not-allowed"
                                                 }`}
                                         >
                                             {/* Categoría y Stock */}
@@ -360,10 +360,7 @@ export default function Kiosko() {
                                             <p className="text-sm text-zinc-400 mb-2">Aquí está el código de acceso del visitante:</p>
 
                                             {/* Mostrar QR Code */}
-                                            <div className="w-48 h-48 bg-white p-2 rounded-xl border-4 border-emerald-500 flex items-center justify-center shadow-[0_0_20px_rgba(16,185,129,0.3)]">
-                                                <img src={qrCodeResult} alt="QR Code" className="w-full h-full object-contain" />
-                                            </div>
-
+                                            <img src={qrCodeResult} alt="Código QR de Acceso" className="w-64 h-64 mx-auto rounded-lg shadow-md" />
                                             <p className="text-xs text-zinc-500 mt-4">* El visitante puede usar este código en los torniquetes por el día de hoy.</p>
 
                                             <button
