@@ -8,5 +8,9 @@ export const membershipsService = {
     create: async (payload: { userId: number; planId: number; shiftId: number }) => {
         const { data } = await apiClient.post('/memberships', payload);
         return data;
+    },
+    payDebt: async (id: number, payload: { amount: number; paymentMethod: string }) => {
+        const { data } = await apiClient.post(`/memberships/${id}/pay`, payload);
+        return data;
     }
 };

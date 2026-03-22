@@ -2,7 +2,7 @@ import { Body, Controller, Get, Post, Request, UseGuards, Param, ParseIntPipe } 
 import { AuthGuard } from '@nestjs/passport';
 import { MembershipsService } from './memberships.service';
 import { CreateMembershipDto } from './dto/create-membership.dto';
-import { PayDebtDto } from './dto/pay-debt.dto';
+import { PayMembershipDto } from './dto/pay-membership.dto';
 import { FreezeMembershipDto } from './dto/freeze-membership.dto';
 
 @UseGuards(AuthGuard('jwt'))
@@ -23,10 +23,9 @@ export class MembershipsController {
     @Post(':id/pay')
     async payDebt(
         @Param('id', ParseIntPipe) id: number,
-        @Body() payDebtDto: PayDebtDto,
-        @Request() req: any,
+        @Body() dto: PayMembershipDto,
     ) {
-        return this.membershipsService.payDebt(req.user.userId, id, payDebtDto);
+        return this.membershipsService.payDebt(id, dto);
     }
 
     @Post(':id/freeze')

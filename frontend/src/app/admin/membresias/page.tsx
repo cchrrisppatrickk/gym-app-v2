@@ -9,7 +9,7 @@ import { catalogService } from "@/services/catalog.service";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
-import { CreditCard, Plus, X, AlertCircle } from "lucide-react";
+import { CreditCard, Plus, X, AlertCircle, Banknote } from "lucide-react";
 
 const membershipSchema = z.object({
     userId: z.number().min(1, "Selecciona un socio"),
@@ -17,7 +17,13 @@ const membershipSchema = z.object({
     shiftId: z.number().min(1, "Selecciona un turno"),
 });
 
+const paymentSchema = z.object({
+    amount: z.number().min(0.1, "El monto debe ser mayor a 0"),
+    paymentMethod: z.string().min(1, "Selecciona un método de pago"),
+});
+
 type MembershipFormValues = z.infer<typeof membershipSchema>;
+type PaymentFormValues = z.infer<typeof paymentSchema>;
 
 export default function Membresias() {
     const [memberships, setMemberships] = useState<any[]>([]);
@@ -29,6 +35,11 @@ export default function Membresias() {
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [isLoadingCatalogs, setIsLoadingCatalogs] = useState(false);
     const [serverError, setServerError] = useState("");
+
+    // Payment State
+    const [isPaymentModalOpen, setIsPaymentModalOpen] = useState(false);
+    const [selectedMembership, setSelectedMembership] = useState<any>(null);
+    const [paymentError, setPaymentError] = useState("");
 
     const {
         register,
@@ -42,6 +53,19 @@ export default function Membresias() {
             planId: 0,
             shiftId: 0,
         },
+    });
+
+    const {
+        register: registerPayment,
+        handleSubmit: handleSubmitPayment,
+        reset: resetPayment,
+        formState: { errors: paymentErrors, isSubmitting: isPaying }
+    } = useForm<PaymentFormValues>({
+        resolver: zodResolver(paymentSchema),
+        defaultValues: {
+            amount: 0,
+            paymentMethod: "CASH",
+        }
     });
 
     const fetchMemberships = async () => {
@@ -102,6 +126,35 @@ export default function Membresias() {
         }
     };
 
+    const handleOpenPayment = (mem: any) => {
+        setSelectedMembership(mem);
+        setPaymentError("");
+        resetPayment({
+            amount: parseFloat(mem.pendingBalance),
+            paymentMethod: "CASH"
+        });
+        setIsPaymentModalOpen(true);
+    };
+
+    const onPaymentSubmit = async (values: PaymentFormValues) => {
+        setPaymentError("");
+        if (!selectedMembership) return;
+
+        try {
+            await membershipsService.payDebt(selectedMembership.id, {
+                amount: Number(values.amount),
+                paymentMethod: values.paymentMethod
+            });
+            setIsPaymentModalOpen(false);
+            setSelectedMembership(null);
+            resetPayment();
+            await fetchMemberships();
+        } catch (error: any) {
+            console.error("Error paying debt:", error);
+            setPaymentError(error.response?.data?.message || "Ocurrió un error al registrar el pago.");
+        }
+    };
+
     return (
         <ProtectedRoute>
             <DashboardLayout>
@@ -135,6 +188,7 @@ export default function Membresias() {
                                             <th className="px-6 py-4 font-bold tracking-wider">Fin</th>
                                             <th className="px-6 py-4 font-bold tracking-wider">Estado</th>
                                             <th className="px-6 py-4 font-bold tracking-wider text-right">Deuda</th>
+                                            <th className="px-6 py-4 font-bold tracking-wider text-center">Acciones</th>
                                         </tr>
                                     </thead>
                                     <tbody className="divide-y divide-zinc-800/50">
@@ -166,12 +220,23 @@ export default function Membresias() {
                                                             <span className="text-emerald-400">S/ 0.00</span>
                                                         )}
                                                     </td>
+                                                    <td className="whitespace-nowrap px-6 py-4 text-center">
+                                                        {debt > 0 && mem.status === 'ACTIVE' && (
+                                                            <button
+                                                                onClick={() => handleOpenPayment(mem)}
+                                                                className="inline-flex items-center gap-1.5 rounded-lg bg-emerald-500/10 px-3 py-1.5 text-xs font-bold text-emerald-500 transition-colors hover:bg-emerald-500 hover:text-white border border-emerald-500/20"
+                                                            >
+                                                                <Banknote className="h-3.5 w-3.5" />
+                                                                Cobrar
+                                                            </button>
+                                                        )}
+                                                    </td>
                                                 </tr>
                                             );
                                         })}
                                         {memberships.length === 0 && (
                                             <tr>
-                                                <td colSpan={6} className="px-6 py-12 text-center text-zinc-500">
+                                                <td colSpan={7} className="px-6 py-12 text-center text-zinc-500">
                                                     No hay membresías registradas actualmente.
                                                 </td>
                                             </tr>
@@ -285,6 +350,74 @@ export default function Membresias() {
                     </div>
                 )}
 
+                {/* Modal de Cobro */}
+                {isPaymentModalOpen && selectedMembership && (
+                    <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+                        <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={() => setIsPaymentModalOpen(false)} />
+                        <div className="relative w-full max-w-sm rounded-2xl border border-zinc-800 bg-zinc-950 p-6 shadow-2xl">
+
+                            <div className="flex items-center justify-between mb-2">
+                                <h3 className="text-xl font-bold text-white flex items-center gap-2">
+                                    <Banknote className="h-5 w-5 text-emerald-500" />
+                                    Registrar Abono
+                                </h3>
+                                <button
+                                    onClick={() => setIsPaymentModalOpen(false)}
+                                    className="rounded-lg p-2 text-zinc-400 hover:bg-zinc-800 hover:text-white"
+                                >
+                                    <X className="h-5 w-5" />
+                                </button>
+                            </div>
+
+                            <p className="text-zinc-400 mb-6 text-sm border-b border-zinc-800 pb-4">
+                                Deuda Actual: <strong className="text-red-400">S/ {parseFloat(selectedMembership.pendingBalance).toFixed(2)}</strong>
+                            </p>
+
+                            <form onSubmit={handleSubmitPayment(onPaymentSubmit)} className="space-y-4">
+                                <div className="space-y-1.5">
+                                    <label className="text-xs font-bold uppercase text-zinc-400">Monto a Cobrar (S/)</label>
+                                    <input
+                                        type="number"
+                                        step="0.1"
+                                        max={parseFloat(selectedMembership.pendingBalance)}
+                                        {...registerPayment("amount", { valueAsNumber: true })}
+                                        className={`w-full rounded-lg border bg-zinc-900 py-3 px-4 text-white focus:outline-none focus:ring-2 focus:ring-emerald-500/50 ${paymentErrors.amount ? 'border-red-500' : 'border-zinc-800'}`}
+                                    />
+                                    {paymentErrors.amount && <p className="text-xs text-red-500 font-semibold">{paymentErrors.amount.message}</p>}
+                                </div>
+
+                                <div className="space-y-1.5">
+                                    <label className="text-xs font-bold uppercase text-zinc-400">Método de Pago</label>
+                                    <select
+                                        {...registerPayment("paymentMethod")}
+                                        className={`w-full rounded-lg border bg-zinc-900 py-3 px-4 text-white focus:outline-none focus:ring-2 focus:ring-emerald-500/50 appearance-none ${paymentErrors.paymentMethod ? 'border-red-500' : 'border-zinc-800'}`}
+                                    >
+                                        <option value="CASH">Efectivo</option>
+                                        <option value="CARD">Tarjeta de Crédito/Débito</option>
+                                        <option value="TRANSFER">Transferencia / Yape / Plin</option>
+                                    </select>
+                                    {paymentErrors.paymentMethod && <p className="text-xs text-red-500 font-semibold">{paymentErrors.paymentMethod.message}</p>}
+                                </div>
+
+                                {paymentError && (
+                                    <div className="rounded-lg bg-red-500/10 p-3 text-center text-sm font-semibold text-red-500 border border-red-500/20">
+                                        {paymentError}
+                                    </div>
+                                )}
+
+                                <div className="pt-4 mt-2">
+                                    <button
+                                        type="submit"
+                                        disabled={isPaying}
+                                        className="w-full rounded-xl bg-emerald-600 py-3 font-bold uppercase tracking-wider text-white transition-all hover:bg-emerald-500 disabled:opacity-50 disabled:pointer-events-none"
+                                    >
+                                        {isPaying ? "Procesando..." : "Cobrar"}
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                )}
             </DashboardLayout>
         </ProtectedRoute>
     );

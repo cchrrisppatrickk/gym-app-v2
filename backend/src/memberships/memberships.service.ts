@@ -2,7 +2,7 @@ import { BadRequestException, Injectable, NotFoundException } from '@nestjs/comm
 import { PrismaService } from '../prisma/prisma.service';
 import { CashRegisterService } from '../cash-register/cash-register.service';
 import { CreateMembershipDto } from './dto/create-membership.dto';
-import { PayDebtDto } from './dto/pay-debt.dto';
+import { PayMembershipDto } from './dto/pay-membership.dto';
 import { FreezeMembershipDto } from './dto/freeze-membership.dto';
 import { MembershipStatus } from '@prisma/client';
 
@@ -48,14 +48,14 @@ export class MembershipsService {
         });
     }
 
-    async payDebt(employeeId: number, membershipId: number, dto: PayDebtDto) {
-        // 1. Validar Caja Abierta
-        const openBox = await this.cashRegisterService.getOpenBox(employeeId);
-        if (!openBox) {
-            throw new BadRequestException('Debe abrir caja antes de cobrar una deuda.');
+    async payDebt(membershipId: number, dto: PayMembershipDto) {
+        // 1. Verificamos si hay caja abierta independientemente del empleado (Flujo CRM simplificado)
+        const activeBox = await this.prisma.cashRegister.findFirst({ where: { status: 'OPEN' } });
+        if (!activeBox) {
+            throw new BadRequestException('Debe abrir la caja primero.');
         }
 
-        // 2. Validar Membresía y Deuda
+        // 2. Buscamos la membresía
         const membership = await this.prisma.membership.findUnique({
             where: { id: membershipId },
         });
@@ -66,20 +66,26 @@ export class MembershipsService {
 
         const currentDebt = membership.pendingBalance.toNumber();
 
-        if (currentDebt <= 0) {
-            throw new BadRequestException('Esta membresía no tiene deudas pendientes.');
-        }
-
-        // Validación Matemática: El pago no puede superar la deuda
+        // Verificamos el monto
         if (dto.amount > currentDebt) {
             throw new BadRequestException(
-                `El monto a pagar ($${dto.amount}) supera la deuda actual ($${currentDebt}).`,
+                `El monto a pagar (${dto.amount}) supera la deuda actual (${currentDebt}).`,
             );
         }
 
         // 3. Transacción Atómica
         return this.prisma.$transaction(async (tx) => {
-            // Amortizar la deuda
+            // A) Registrar el pago/abono vinculado a la caja
+            const payment = await tx.payment.create({
+                data: {
+                    membershipId,
+                    cashRegisterId: activeBox.id,
+                    amount: dto.amount,
+                    paymentMethod: dto.paymentMethod,
+                },
+            });
+
+            // B) Actualiza la membresía restando la deuda
             const updatedMembership = await tx.membership.update({
                 where: { id: membershipId },
                 data: {
@@ -89,22 +95,7 @@ export class MembershipsService {
                 },
             });
 
-            // Registrar el pago/abono vinculado a la caja
-            const payment = await tx.payment.create({
-                data: {
-                    membershipId,
-                    cashRegisterId: openBox.id,
-                    amount: dto.amount,
-                    paymentMethod: dto.paymentMethod,
-                    notes: 'Abono de deuda',
-                },
-            });
-
-            return {
-                message: 'Abono de deuda registrado con éxito',
-                payment,
-                newPendingBalance: updatedMembership.pendingBalance.toNumber(),
-            };
+            return updatedMembership;
         });
     }
 

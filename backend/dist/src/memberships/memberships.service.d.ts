@@ -1,7 +1,7 @@
 import { PrismaService } from '../prisma/prisma.service';
 import { CashRegisterService } from '../cash-register/cash-register.service';
 import { CreateMembershipDto } from './dto/create-membership.dto';
-import { PayDebtDto } from './dto/pay-debt.dto';
+import { PayMembershipDto } from './dto/pay-membership.dto';
 import { FreezeMembershipDto } from './dto/freeze-membership.dto';
 export declare class MembershipsService {
     private readonly prisma;
@@ -58,18 +58,18 @@ export declare class MembershipsService {
         createdAt: Date;
         updatedAt: Date;
     }>;
-    payDebt(employeeId: number, membershipId: number, dto: PayDebtDto): Promise<{
-        message: string;
-        payment: {
-            id: number;
-            amount: import("@prisma/client/runtime/library").Decimal;
-            paymentMethod: string;
-            date: Date;
-            notes: string | null;
-            membershipId: number;
-            cashRegisterId: number;
-        };
-        newPendingBalance: number;
+    payDebt(membershipId: number, dto: PayMembershipDto): Promise<{
+        id: number;
+        userId: number;
+        planId: number;
+        shiftId: number;
+        startDate: Date;
+        endDate: Date;
+        status: import("@prisma/client").$Enums.MembershipStatus;
+        totalPrice: import("@prisma/client/runtime/library").Decimal;
+        pendingBalance: import("@prisma/client/runtime/library").Decimal;
+        createdAt: Date;
+        updatedAt: Date;
     }>;
     freezeMembership(membershipId: number, dto: FreezeMembershipDto): Promise<{
         freezes: {

@@ -49,10 +49,10 @@ let MembershipsService = class MembershipsService {
             },
         });
     }
-    async payDebt(employeeId, membershipId, dto) {
-        const openBox = await this.cashRegisterService.getOpenBox(employeeId);
-        if (!openBox) {
-            throw new common_1.BadRequestException('Debe abrir caja antes de cobrar una deuda.');
+    async payDebt(membershipId, dto) {
+        const activeBox = await this.prisma.cashRegister.findFirst({ where: { status: 'OPEN' } });
+        if (!activeBox) {
+            throw new common_1.BadRequestException('Debe abrir la caja primero.');
         }
         const membership = await this.prisma.membership.findUnique({
             where: { id: membershipId },
@@ -61,13 +61,18 @@ let MembershipsService = class MembershipsService {
             throw new common_1.NotFoundException('La membresía no existe.');
         }
         const currentDebt = membership.pendingBalance.toNumber();
-        if (currentDebt <= 0) {
-            throw new common_1.BadRequestException('Esta membresía no tiene deudas pendientes.');
-        }
         if (dto.amount > currentDebt) {
-            throw new common_1.BadRequestException(`El monto a pagar ($${dto.amount}) supera la deuda actual ($${currentDebt}).`);
+            throw new common_1.BadRequestException(`El monto a pagar (${dto.amount}) supera la deuda actual (${currentDebt}).`);
         }
         return this.prisma.$transaction(async (tx) => {
+            const payment = await tx.payment.create({
+                data: {
+                    membershipId,
+                    cashRegisterId: activeBox.id,
+                    amount: dto.amount,
+                    paymentMethod: dto.paymentMethod,
+                },
+            });
             const updatedMembership = await tx.membership.update({
                 where: { id: membershipId },
                 data: {
@@ -76,20 +81,7 @@ let MembershipsService = class MembershipsService {
                     },
                 },
             });
-            const payment = await tx.payment.create({
-                data: {
-                    membershipId,
-                    cashRegisterId: openBox.id,
-                    amount: dto.amount,
-                    paymentMethod: dto.paymentMethod,
-                    notes: 'Abono de deuda',
-                },
-            });
-            return {
-                message: 'Abono de deuda registrado con éxito',
-                payment,
-                newPendingBalance: updatedMembership.pendingBalance.toNumber(),
-            };
+            return updatedMembership;
         });
     }
     async freezeMembership(membershipId, dto) {
