@@ -1,22 +1,24 @@
 import { PrismaService } from '../prisma/prisma.service';
-import { ValidateAccessDto } from './dto/validate-access.dto';
 export declare class AccessService {
     private readonly prisma;
     constructor(prisma: PrismaService);
-    validateQr(dto: ValidateAccessDto): Promise<{
+    scanQr(userId: number): Promise<{
         status: string;
         message: string;
-        debt?: undefined;
         user?: undefined;
-    } | {
-        status: string;
-        message: string;
-        debt: number;
-        user: string;
+        daysLeft?: undefined;
+        pendingBalance?: undefined;
     } | {
         status: string;
         message: string;
         user: string;
-        debt?: undefined;
+        daysLeft: number;
+        pendingBalance: number;
+    } | {
+        status: string;
+        message: string;
+        user: string;
+        daysLeft: number;
+        pendingBalance?: undefined;
     }>;
 }

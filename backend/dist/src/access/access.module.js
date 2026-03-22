@@ -8,9 +8,9 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.AccessModule = void 0;
 const common_1 = require("@nestjs/common");
-const prisma_module_1 = require("../prisma/prisma.module");
-const access_controller_1 = require("./access.controller");
 const access_service_1 = require("./access.service");
+const access_controller_1 = require("./access.controller");
+const prisma_module_1 = require("../prisma/prisma.module");
 let AccessModule = class AccessModule {
 };
 exports.AccessModule = AccessModule;

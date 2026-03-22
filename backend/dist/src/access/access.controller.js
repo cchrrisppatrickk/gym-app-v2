@@ -14,28 +14,25 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.AccessController = void 0;
 const common_1 = require("@nestjs/common");
-const passport_1 = require("@nestjs/passport");
 const access_service_1 = require("./access.service");
-const validate_access_dto_1 = require("./dto/validate-access.dto");
 let AccessController = class AccessController {
     accessService;
     constructor(accessService) {
         this.accessService = accessService;
     }
-    async validate(validateAccessDto) {
-        return this.accessService.validateQr(validateAccessDto);
+    scan(body) {
+        return this.accessService.scanQr(body.userId);
     }
 };
 exports.AccessController = AccessController;
 __decorate([
-    (0, common_1.Post)('validate'),
+    (0, common_1.Post)('scan'),
     __param(0, (0, common_1.Body)()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [validate_access_dto_1.ValidateAccessDto]),
-    __metadata("design:returntype", Promise)
-], AccessController.prototype, "validate", null);
+    __metadata("design:paramtypes", [Object]),
+    __metadata("design:returntype", void 0)
+], AccessController.prototype, "scan", null);
 exports.AccessController = AccessController = __decorate([
-    (0, common_1.UseGuards)((0, passport_1.AuthGuard)('jwt')),
     (0, common_1.Controller)('access'),
     __metadata("design:paramtypes", [access_service_1.AccessService])
 ], AccessController);

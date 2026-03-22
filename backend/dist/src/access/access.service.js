@@ -12,100 +12,37 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.AccessService = void 0;
 const common_1 = require("@nestjs/common");
 const prisma_service_1 = require("../prisma/prisma.service");
-const client_1 = require("@prisma/client");
 let AccessService = class AccessService {
     prisma;
     constructor(prisma) {
         this.prisma = prisma;
     }
-    async validateQr(dto) {
-        const { qrCode } = dto;
+    async scanQr(userId) {
         const user = await this.prisma.user.findUnique({
-            where: { qrCode },
-            include: {
-                memberships: {
-                    where: { status: client_1.MembershipStatus.ACTIVE },
-                    include: { shift: true, plan: true },
-                },
-            },
+            where: { id: userId },
+            include: { memberships: { where: { status: 'ACTIVE' }, include: { plan: true } } }
         });
-        if (!user || user.isActive === false) {
-            await this.prisma.attendance.create({
-                data: {
-                    userId: user?.id || null,
-                    isAllowed: false,
-                    denialReason: 'QR Inválido o Usuario Inactivo',
-                },
-            });
-            return { status: 'RED', message: 'Acceso Denegado' };
-        }
-        if (user.memberships.length === 0) {
-            await this.prisma.attendance.create({
-                data: {
-                    userId: user.id,
-                    isAllowed: false,
-                    denialReason: 'Sin Membresía Activa',
-                },
-            });
-            return { status: 'RED', message: 'Acceso Denegado' };
-        }
+        if (!user)
+            return { status: 'DENIED', message: 'Usuario no encontrado' };
+        if (user.memberships.length === 0)
+            return { status: 'DENIED', message: 'Sin membresía activa' };
         const membership = user.memberships[0];
-        const now = new Date();
-        const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-        const expiry = new Date(membership.endDate);
-        const expiryDate = new Date(expiry.getFullYear(), expiry.getMonth(), expiry.getDate());
-        if (today > expiryDate) {
-            await this.prisma.attendance.create({
-                data: {
-                    userId: user.id,
-                    isAllowed: false,
-                    denialReason: 'Membresía Vencida',
-                },
-            });
-            await this.prisma.membership.update({
-                where: { id: membership.id },
-                data: { status: client_1.MembershipStatus.EXPIRED },
-            });
-            return { status: 'RED', message: 'Acceso Denegado' };
+        const today = new Date();
+        if (today > membership.endDate) {
+            return { status: 'DENIED', message: 'Membresía expirada' };
         }
-        const { shift } = membership;
-        const currentUtcHours = now.getUTCHours();
-        const currentUtcMinutes = now.getUTCMinutes();
-        const currentMinutes = (currentUtcHours * 60) + currentUtcMinutes;
-        const startObj = new Date(shift.startTime);
-        const endObj = new Date(shift.endTime);
-        const startMinutes = (startObj.getUTCHours() * 60) + startObj.getUTCMinutes();
-        const endMinutes = (endObj.getUTCHours() * 60) + endObj.getUTCMinutes();
-        if (currentMinutes < startMinutes || currentMinutes > endMinutes) {
-            await this.prisma.attendance.create({
-                data: {
-                    userId: user.id,
-                    isAllowed: false,
-                    denialReason: 'Fuera de Turno',
-                },
-            });
-            return { status: 'RED', message: 'Acceso Denegado' };
-        }
-        await this.prisma.attendance.create({
-            data: {
-                userId: user.id,
-                isAllowed: true,
-            },
-        });
-        const pendingBalance = membership.pendingBalance.toNumber();
-        if (pendingBalance > 0) {
+        const daysLeft = Math.ceil((membership.endDate.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
+        const pendingAmount = parseFloat(membership.pendingBalance);
+        if (pendingAmount > 0) {
             return {
-                status: 'YELLOW',
-                message: 'Acceso Permitido con Deuda',
-                debt: pendingBalance,
+                status: 'WARNING',
+                message: 'Acceso Permitido (Deuda Pendiente)',
                 user: user.fullName,
+                daysLeft,
+                pendingBalance: pendingAmount
             };
         }
-        return {
-            status: 'GREEN',
-            message: 'Bienvenido',
-            user: user.fullName,
-        };
+        return { status: 'GRANTED', message: 'Acceso Permitido', user: user.fullName, daysLeft };
     }
 };
 exports.AccessService = AccessService;
