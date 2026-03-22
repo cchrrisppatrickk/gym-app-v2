@@ -4,38 +4,38 @@ export declare class ShiftsController {
     private readonly shiftsService;
     constructor(shiftsService: ShiftsService);
     create(createShiftDto: CreateShiftDto): Promise<{
+        id: number;
         name: string;
+        deletedAt: Date | null;
         startTime: Date;
         endTime: Date;
-        deletedAt: Date | null;
-        id: number;
     }>;
     findAll(): Promise<{
+        id: number;
         name: string;
+        deletedAt: Date | null;
         startTime: Date;
         endTime: Date;
-        deletedAt: Date | null;
-        id: number;
     }[]>;
     findOne(id: number): Promise<{
+        id: number;
         name: string;
+        deletedAt: Date | null;
         startTime: Date;
         endTime: Date;
-        deletedAt: Date | null;
-        id: number;
     } | null>;
     update(id: number, updateShiftDto: Partial<CreateShiftDto>): Promise<{
+        id: number;
         name: string;
+        deletedAt: Date | null;
         startTime: Date;
         endTime: Date;
-        deletedAt: Date | null;
-        id: number;
     }>;
     remove(id: number): Promise<{
+        id: number;
         name: string;
+        deletedAt: Date | null;
         startTime: Date;
         endTime: Date;
-        deletedAt: Date | null;
-        id: number;
     }>;
 }

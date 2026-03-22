@@ -4,48 +4,48 @@ export declare class ProductsController {
     private readonly productsService;
     constructor(productsService: ProductsService);
     create(createProductDto: CreateProductDto): Promise<{
+        id: number;
         name: string;
-        category: string | null;
+        deletedAt: Date | null;
         price: import("@prisma/client/runtime/library").Decimal;
+        category: string | null;
         barcode: string | null;
         stock: number;
-        deletedAt: Date | null;
-        id: number;
     }>;
     findAll(): Promise<{
+        id: number;
         name: string;
-        category: string | null;
+        deletedAt: Date | null;
         price: import("@prisma/client/runtime/library").Decimal;
+        category: string | null;
         barcode: string | null;
         stock: number;
-        deletedAt: Date | null;
-        id: number;
     }[]>;
     findOne(id: number): Promise<{
+        id: number;
         name: string;
-        category: string | null;
+        deletedAt: Date | null;
         price: import("@prisma/client/runtime/library").Decimal;
+        category: string | null;
         barcode: string | null;
         stock: number;
-        deletedAt: Date | null;
-        id: number;
     } | null>;
     update(id: number, updateProductDto: Partial<CreateProductDto>): Promise<{
+        id: number;
         name: string;
-        category: string | null;
+        deletedAt: Date | null;
         price: import("@prisma/client/runtime/library").Decimal;
+        category: string | null;
         barcode: string | null;
         stock: number;
-        deletedAt: Date | null;
-        id: number;
     }>;
     remove(id: number): Promise<{
+        id: number;
         name: string;
-        category: string | null;
+        deletedAt: Date | null;
         price: import("@prisma/client/runtime/library").Decimal;
+        category: string | null;
         barcode: string | null;
         stock: number;
-        deletedAt: Date | null;
-        id: number;
     }>;
 }

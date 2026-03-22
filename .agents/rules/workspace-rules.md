@@ -18,6 +18,8 @@ TypeScript será el único lenguaje permitido para la lógica de la aplicación.
 
 Tipado Fuerte: Prohibido el uso de any. Si un tipo es desconocido, usar unknown y validarlo, o definir la interface / type correspondiente.
 
+Manejo de DTOs en Modo Estricto: Para evitar errores de inicialización (TS2564) en las clases de transferencia de datos (DTOs), se debe usar obligatoriamente el operador de asignación definitiva (!) en las propiedades requeridas (ej. name!: string;) y el modificador opcional (?) en las no requeridas, ya que NestJS poblará estos valores en tiempo de ejecución.
+
 Nomenclatura (Naming):
 
 Archivos: kebab-case (ej. user-profile.component.tsx, auth.service.ts).
@@ -35,9 +37,13 @@ Estas reglas dictan cómo el código debe estructurarse internamente. El agente 
 
 Para el Backend (NestJS):
 
-Estricta Separación en 3 Capas: 1.  Controllers: Solo reciben la petición (Request), llaman al servicio y devuelven la respuesta (Response). Cero lógica de negocio aquí.
-2.  Services: Contienen toda la lógica, cálculos de fechas y reglas del gimnasio.
-3.  Repositories/Prisma: La única capa que ejecuta consultas a PostgreSQL.
+Estricta Separación en 3 Capas:
+
+Controllers: Solo reciben la petición (Request), llaman al servicio y devuelven la respuesta (Response). Cero lógica de negocio aquí.
+
+Services: Contienen toda la lógica, cálculos de fechas y reglas del gimnasio.
+
+Repositories/Prisma: La única capa que ejecuta consultas a PostgreSQL.
 
 Inyección de Dependencias: Todo servicio debe ser inyectable (@Injectable()). No se instanciarán clases manualmente con new.
 
@@ -49,6 +55,8 @@ Estado Global: Utilizar Zustand o Context API solo cuando sea estrictamente nece
 
 🗄️ 4. Reglas de Base de Datos (Prisma)
 Fuente Única de la Verdad: El archivo schema.prisma es el corazón del sistema. Cualquier cambio en las tablas o relaciones debe hacerse primero aquí, no directamente en SQL.
+
+Cliente Prisma Estándar (Prohibido Driver Adapters): Para evitar fallos de conexión local (como el error SCRAM-SERVER-FIRST-MESSAGE), se utilizará exclusivamente el cliente nativo de Prisma. Queda estrictamente prohibido instalar o configurar adaptadores experimentales orientados a la nube (como @prisma/adapter-pg o librerías externas como pg). El PrismaService debe limitarse a instanciar new PrismaClient() de forma limpia.
 
 Soft Deletes (Borrado Lógico): Nunca eliminaremos registros de usuarios, pagos o membresías (DELETE). Usaremos un campo isActive: Boolean o deletedAt: DateTime? para mantener el historial intacto y no romper las estadísticas financieras.
 

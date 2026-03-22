@@ -4,38 +4,38 @@ export declare class ShiftsService {
     private readonly prisma;
     constructor(prisma: PrismaService);
     create(data: CreateShiftDto): Promise<{
+        id: number;
         name: string;
+        deletedAt: Date | null;
         startTime: Date;
         endTime: Date;
-        deletedAt: Date | null;
-        id: number;
     }>;
     findAll(): Promise<{
+        id: number;
         name: string;
+        deletedAt: Date | null;
         startTime: Date;
         endTime: Date;
-        deletedAt: Date | null;
-        id: number;
     }[]>;
     findOne(id: number): Promise<{
+        id: number;
         name: string;
+        deletedAt: Date | null;
         startTime: Date;
         endTime: Date;
-        deletedAt: Date | null;
-        id: number;
     } | null>;
     update(id: number, data: Partial<CreateShiftDto>): Promise<{
+        id: number;
         name: string;
+        deletedAt: Date | null;
         startTime: Date;
         endTime: Date;
-        deletedAt: Date | null;
-        id: number;
     }>;
     remove(id: number): Promise<{
+        id: number;
         name: string;
+        deletedAt: Date | null;
         startTime: Date;
         endTime: Date;
-        deletedAt: Date | null;
-        id: number;
     }>;
 }
