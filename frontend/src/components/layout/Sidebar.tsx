@@ -1,27 +1,43 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { authService } from "@/services/auth.service";
+import { jwtDecode } from "jwt-decode";
 import {
     LayoutDashboard,
     MonitorPlay,
     ShoppingCart,
-    QrCode,
+    ScanFace,
     Users,
     Settings
 } from "lucide-react";
 
 const navigation = [
-    { name: "Dashboard", href: "/admin/dashboard", icon: LayoutDashboard },
-    { name: "Recepción / Caja", href: "/recepcion/caja", icon: MonitorPlay },
-    { name: "Kiosko POS", href: "/kiosko", icon: ShoppingCart },
-    { name: "Torniquete", href: "/torniquete", icon: QrCode },
-    { name: "Miembros", href: "/miembros", icon: Users },
-    { name: "Configuración", href: "/configuracion", icon: Settings },
+    { name: "Dashboard", href: "/admin/dashboard", icon: LayoutDashboard, roles: [1] },
+    { name: "Recepción / Caja", href: "/recepcion/caja", icon: MonitorPlay, roles: [1, 2] },
+    { name: "Kiosko POS", href: "/kiosko", icon: ShoppingCart, roles: [1, 2] },
+    { name: "Torniquete", href: "/acceso", icon: ScanFace, roles: [1, 2] },
+    { name: "Miembros", href: "/admin/miembros", icon: Users, roles: [1, 2] },
+    { name: "Configuración", href: "/admin/config", icon: Settings, roles: [1] },
 ];
 
 export default function Sidebar() {
     const pathname = usePathname();
+    const [roleId, setRoleId] = useState<number | null>(null);
+
+    useEffect(() => {
+        const token = authService.getToken();
+        if (token) {
+            try {
+                const decoded = jwtDecode<{ roleId: number }>(token);
+                setRoleId(decoded.roleId);
+            } catch (error) {
+                console.error("Invalid token:", error);
+            }
+        }
+    }, []);
 
     return (
         <aside className="fixed inset-y-0 left-0 z-50 flex w-64 flex-col bg-zinc-900 border-r border-zinc-800 transition-all duration-300 hidden lg:flex">
@@ -32,28 +48,30 @@ export default function Sidebar() {
 
             {/* Navigation Links */}
             <nav className="flex-1 overflow-y-auto py-6 px-3 space-y-2">
-                {navigation.map((item) => {
-                    const isActive = pathname === item.href || pathname?.startsWith(item.href + '/');
-                    const Icon = item.icon;
+                {navigation
+                    .filter((item) => roleId && item.roles.includes(roleId))
+                    .map((item) => {
+                        const isActive = pathname === item.href || pathname?.startsWith(item.href + '/');
+                        const Icon = item.icon;
 
-                    return (
-                        <Link
-                            key={item.name}
-                            href={item.href}
-                            className={`group flex items-center px-3 py-3 text-sm font-semibold rounded-xl transition-all duration-200 ${isActive
-                                    ? "bg-emerald-600/20 text-emerald-400"
-                                    : "text-zinc-400 hover:bg-zinc-800/60 hover:text-zinc-100"
-                                }`}
-                        >
-                            <Icon
-                                className={`mr-3 h-5 w-5 flex-shrink-0 transition-colors ${isActive ? "text-emerald-400" : "text-zinc-500 group-hover:text-zinc-300"
+                        return (
+                            <Link
+                                key={item.name}
+                                href={item.href}
+                                className={`group flex items-center px-3 py-3 text-sm font-semibold rounded-xl transition-all duration-200 ${isActive
+                                        ? "bg-emerald-600/20 text-emerald-400"
+                                        : "text-zinc-400 hover:bg-zinc-800/60 hover:text-zinc-100"
                                     }`}
-                                aria-hidden="true"
-                            />
-                            {item.name}
-                        </Link>
-                    );
-                })}
+                            >
+                                <Icon
+                                    className={`mr-3 h-5 w-5 flex-shrink-0 transition-colors ${isActive ? "text-emerald-400" : "text-zinc-500 group-hover:text-zinc-300"
+                                        }`}
+                                    aria-hidden="true"
+                                />
+                                {item.name}
+                            </Link>
+                        );
+                    })}
             </nav>
         </aside>
     );

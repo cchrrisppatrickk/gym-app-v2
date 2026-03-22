@@ -2,6 +2,7 @@
 
 import { usePathname } from "next/navigation";
 import { Bell, LogOut, User } from "lucide-react";
+import { authService } from "@/services/auth.service";
 
 export default function Topbar() {
     const pathname = usePathname();
@@ -54,10 +55,7 @@ export default function Topbar() {
                             type="button"
                             className="flex items-center gap-2 rounded-lg p-2 text-sm font-semibold text-zinc-400 transition-colors hover:bg-red-500/10 hover:text-red-400"
                             title="Cerrar Sesión"
-                            onClick={() => {
-                                // To be implemented fully in future
-                                console.log("Logout clicked");
-                            }}
+                            onClick={() => authService.logout()}
                         >
                             <LogOut className="h-5 w-5" aria-hidden="true" />
                             <span className="hidden sm:inline-block">Salir</span>
