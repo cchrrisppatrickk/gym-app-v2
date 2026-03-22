@@ -25,7 +25,7 @@ export class SalesService {
         });
 
         let totalSaleAmount = 0;
-        const itemsToProcess = [];
+        const itemsToProcess: { productId: number; quantity: number; unitPrice: number }[] = [];
 
         // Validamos cada ítem del DTO contra el stock real en DB
         for (const itemDto of dto.items) {
