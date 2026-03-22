@@ -105,6 +105,52 @@ let MembershipsService = class MembershipsService {
             };
         });
     }
+    async freezeMembership(membershipId, dto) {
+        const membership = await this.prisma.membership.findUnique({
+            where: { id: membershipId },
+            include: { plan: true },
+        });
+        if (!membership) {
+            throw new common_1.NotFoundException('Membresía no encontrada.');
+        }
+        if (membership.status !== client_1.MembershipStatus.ACTIVE) {
+            throw new common_1.BadRequestException('Solo se pueden congelar membresías activas.');
+        }
+        if (!membership.plan.allowsFreeze) {
+            throw new common_1.BadRequestException('El plan actual no permite congelamientos.');
+        }
+        const start = new Date(dto.startDate);
+        const end = new Date(dto.endDate);
+        const diffTime = end.getTime() - start.getTime();
+        const daysFrozen = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+        if (daysFrozen <= 0) {
+            throw new common_1.BadRequestException('La fecha de fin debe ser posterior a la de inicio.');
+        }
+        const newEndDate = new Date(membership.endDate.getTime() + daysFrozen * 24 * 60 * 60 * 1000);
+        return this.prisma.$transaction(async (tx) => {
+            await tx.freeze.create({
+                data: {
+                    membershipId,
+                    startDate: start,
+                    endDate: end,
+                    reason: dto.reason,
+                },
+            });
+            const today = new Date();
+            today.setHours(0, 0, 0, 0);
+            const freezeStart = new Date(start);
+            freezeStart.setHours(0, 0, 0, 0);
+            const updateData = { endDate: newEndDate };
+            if (freezeStart.getTime() === today.getTime()) {
+                updateData.status = client_1.MembershipStatus.FROZEN;
+            }
+            return tx.membership.update({
+                where: { id: membershipId },
+                data: updateData,
+                include: { freezes: true },
+            });
+        });
+    }
 };
 exports.MembershipsService = MembershipsService;
 exports.MembershipsService = MembershipsService = __decorate([

@@ -1,6 +1,7 @@
 import { MembershipsService } from './memberships.service';
 import { CreateMembershipDto } from './dto/create-membership.dto';
 import { PayDebtDto } from './dto/pay-debt.dto';
+import { FreezeMembershipDto } from './dto/freeze-membership.dto';
 export declare class MembershipsController {
     private readonly membershipsService;
     constructor(membershipsService: MembershipsService);
@@ -39,5 +40,26 @@ export declare class MembershipsController {
             notes: string | null;
         };
         newPendingBalance: number;
+    }>;
+    freeze(id: number, freezeMembershipDto: FreezeMembershipDto): Promise<{
+        freezes: {
+            id: number;
+            startDate: Date;
+            endDate: Date;
+            membershipId: number;
+            reason: string | null;
+        }[];
+    } & {
+        id: number;
+        userId: number;
+        planId: number;
+        shiftId: number;
+        startDate: Date;
+        endDate: Date;
+        status: import("@prisma/client").$Enums.MembershipStatus;
+        totalPrice: import("@prisma/client/runtime/library").Decimal;
+        pendingBalance: import("@prisma/client/runtime/library").Decimal;
+        createdAt: Date;
+        updatedAt: Date;
     }>;
 }

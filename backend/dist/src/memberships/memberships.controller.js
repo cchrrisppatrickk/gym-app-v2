@@ -18,6 +18,7 @@ const passport_1 = require("@nestjs/passport");
 const memberships_service_1 = require("./memberships.service");
 const create_membership_dto_1 = require("./dto/create-membership.dto");
 const pay_debt_dto_1 = require("./dto/pay-debt.dto");
+const freeze_membership_dto_1 = require("./dto/freeze-membership.dto");
 let MembershipsController = class MembershipsController {
     membershipsService;
     constructor(membershipsService) {
@@ -28,6 +29,9 @@ let MembershipsController = class MembershipsController {
     }
     async payDebt(id, payDebtDto, req) {
         return this.membershipsService.payDebt(req.user.userId, id, payDebtDto);
+    }
+    async freeze(id, freezeMembershipDto) {
+        return this.membershipsService.freezeMembership(id, freezeMembershipDto);
     }
 };
 exports.MembershipsController = MembershipsController;
@@ -48,6 +52,14 @@ __decorate([
     __metadata("design:paramtypes", [Number, pay_debt_dto_1.PayDebtDto, Object]),
     __metadata("design:returntype", Promise)
 ], MembershipsController.prototype, "payDebt", null);
+__decorate([
+    (0, common_1.Post)(':id/freeze'),
+    __param(0, (0, common_1.Param)('id', common_1.ParseIntPipe)),
+    __param(1, (0, common_1.Body)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Number, freeze_membership_dto_1.FreezeMembershipDto]),
+    __metadata("design:returntype", Promise)
+], MembershipsController.prototype, "freeze", null);
 exports.MembershipsController = MembershipsController = __decorate([
     (0, common_1.UseGuards)((0, passport_1.AuthGuard)('jwt')),
     (0, common_1.Controller)('memberships'),

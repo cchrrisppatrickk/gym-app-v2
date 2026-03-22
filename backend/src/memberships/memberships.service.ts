@@ -3,6 +3,7 @@ import { PrismaService } from '../prisma/prisma.service';
 import { CashRegisterService } from '../cash-register/cash-register.service';
 import { CreateMembershipDto } from './dto/create-membership.dto';
 import { PayDebtDto } from './dto/pay-debt.dto';
+import { FreezeMembershipDto } from './dto/freeze-membership.dto';
 import { MembershipStatus } from '@prisma/client';
 
 @Injectable()
@@ -122,6 +123,73 @@ export class MembershipsService {
                 payment,
                 newPendingBalance: updatedMembership.pendingBalance.toNumber(),
             };
+        });
+    }
+
+    async freezeMembership(membershipId: number, dto: FreezeMembershipDto) {
+        // 1. Validar Membresía y Plan
+        const membership = await this.prisma.membership.findUnique({
+            where: { id: membershipId },
+            include: { plan: true },
+        });
+
+        if (!membership) {
+            throw new NotFoundException('Membresía no encontrada.');
+        }
+
+        if (membership.status !== MembershipStatus.ACTIVE) {
+            throw new BadRequestException('Solo se pueden congelar membresías activas.');
+        }
+
+        if (!membership.plan.allowsFreeze) {
+            throw new BadRequestException('El plan actual no permite congelamientos.');
+        }
+
+        // 2. Cálculo de Días de Desplazamiento
+        const start = new Date(dto.startDate);
+        const end = new Date(dto.endDate);
+
+        // Cálculo de diferencia en días
+        const diffTime = end.getTime() - start.getTime();
+        const daysFrozen = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+
+        if (daysFrozen <= 0) {
+            throw new BadRequestException('La fecha de fin debe ser posterior a la de inicio.');
+        }
+
+        // Nueva fecha de vencimiento desplazada
+        const newEndDate = new Date(membership.endDate.getTime() + daysFrozen * 24 * 60 * 60 * 1000);
+
+        // 3. Transacción Atómica
+        return this.prisma.$transaction(async (tx) => {
+            // Crear registro de Congelamiento
+            await tx.freeze.create({
+                data: {
+                    membershipId,
+                    startDate: start,
+                    endDate: end,
+                    reason: dto.reason,
+                },
+            });
+
+            // Actualizar la Membresía
+            const today = new Date();
+            today.setHours(0, 0, 0, 0);
+            const freezeStart = new Date(start);
+            freezeStart.setHours(0, 0, 0, 0);
+
+            const updateData: any = { endDate: newEndDate };
+
+            // Si el congelamiento empieza hoy, cambiamos el estado
+            if (freezeStart.getTime() === today.getTime()) {
+                updateData.status = MembershipStatus.FROZEN;
+            }
+
+            return tx.membership.update({
+                where: { id: membershipId },
+                data: updateData,
+                include: { freezes: true },
+            });
         });
     }
 }
