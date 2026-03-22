@@ -11,7 +11,8 @@ import {
     ShoppingCart,
     ScanFace,
     Users,
-    Settings
+    ShoppingBag,
+    ClipboardList
 } from "lucide-react";
 
 const navigation = [
@@ -20,7 +21,8 @@ const navigation = [
     { name: "Kiosko POS", href: "/kiosko", icon: ShoppingCart, roles: [1, 2] },
     { name: "Torniquete", href: "/acceso", icon: ScanFace, roles: [1, 2] },
     { name: "Miembros", href: "/admin/miembros", icon: Users, roles: [1, 2] },
-    { name: "Configuración", href: "/admin/config/productos", icon: Settings, roles: [1] },
+    { name: "Productos (Kiosko)", href: "/admin/config/productos", icon: ShoppingBag, roles: [1] },
+    { name: "Planes de Membresía", href: "/admin/config/planes", icon: ClipboardList, roles: [1] },
 ];
 
 export default function Sidebar() {
