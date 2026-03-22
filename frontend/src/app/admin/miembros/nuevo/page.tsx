@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import ProtectedRoute from "@/components/auth/ProtectedRoute";
 import DashboardLayout from "@/components/layout/DashboardLayout";
 import { catalogService } from "@/services/catalog.service";
+import { membersService } from "@/services/members.service";
 import { useForm, useWatch } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
@@ -27,12 +28,14 @@ export default function NuevoSocio() {
     const [plans, setPlans] = useState<any[]>([]);
     const [shifts, setShifts] = useState<any[]>([]);
     const [isLoadingData, setIsLoadingData] = useState(true);
+    const [serverError, setServerError] = useState("");
 
     const {
         register,
         handleSubmit,
         control,
-        formState: { errors },
+        formState: { errors, isSubmitting },
+        reset,
     } = useForm<NewMemberFormValues>({
         resolver: zodResolver(newMemberSchema),
         defaultValues: {
@@ -77,9 +80,23 @@ export default function NuevoSocio() {
     const paymentAmount = paymentAmountInput ? Number(paymentAmountInput) : 0;
     const pendingBalance = totalPrice - paymentAmount;
 
-    const onSubmit = (values: NewMemberFormValues) => {
-        console.log('Datos listos para enviar:', values);
-        alert('Revisa la consola interactiva. La integración con el backend se completará en la Fase 2.6.4');
+    const onSubmit = async (values: NewMemberFormValues) => {
+        setServerError("");
+        try {
+            const formattedData = {
+                ...values,
+                planId: Number(values.planId),
+                shiftId: Number(values.shiftId),
+            };
+
+            await membersService.registerNewMember(formattedData);
+
+            alert('¡Socio registrado con éxito!');
+            reset();
+        } catch (error: any) {
+            console.error("Error registrando socio:", error);
+            setServerError(error.response?.data?.message || "Ocurrió un error inesperado al registrar el socio.");
+        }
     };
 
     return (
@@ -256,12 +273,19 @@ export default function NuevoSocio() {
 
                                 </div>
 
+                                {serverError && (
+                                    <div className="mt-4 rounded-lg bg-red-500/10 p-3 text-center text-sm font-semibold text-red-500 border border-red-500/20">
+                                        {serverError}
+                                    </div>
+                                )}
+
                                 <div className="pt-6 mt-6 border-t border-zinc-800/80">
                                     <button
                                         type="submit"
-                                        className="w-full py-4 rounded-xl bg-emerald-600 font-black text-white uppercase tracking-wider transition-all hover:bg-emerald-500 hover:shadow-lg hover:shadow-emerald-900/30 active:scale-95"
+                                        disabled={isSubmitting}
+                                        className="w-full py-4 rounded-xl bg-emerald-600 font-black text-white uppercase tracking-wider transition-all hover:bg-emerald-500 hover:shadow-lg hover:shadow-emerald-900/30 active:scale-95 disabled:opacity-50 disabled:pointer-events-none"
                                     >
-                                        Registrar y Cobrar
+                                        {isSubmitting ? "Registrando..." : "Registrar y Cobrar"}
                                     </button>
                                 </div>
                             </div>

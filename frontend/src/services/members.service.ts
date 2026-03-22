@@ -1,5 +1,18 @@
 import apiClient from '@/lib/apiClient';
 
 export const membersService = {
-    // Endpoints de miembros irán aquí en la fase 2.6.4
+    registerNewMember: async (data: {
+        firstName: string;
+        lastName: string;
+        dni: string;
+        email: string;
+        phone?: string;
+        planId: number;
+        shiftId: number;
+        paymentAmount: number;
+        paymentMethod: string;
+    }) => {
+        const response = await apiClient.post('/memberships/register', data);
+        return response.data;
+    }
 };
