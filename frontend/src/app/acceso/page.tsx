@@ -10,67 +10,61 @@ export default function AccesoScanner() {
     const router = useRouter();
     const [scanStatus, setScanStatus] = useState<'IDLE' | 'GRANTED' | 'WARNING' | 'DENIED'>('IDLE');
     const [scanResult, setScanResult] = useState<any>(null);
-    const [isScanning, setIsScanning] = useState(true);
 
     useEffect(() => {
+        let isMounted = true;
         let scanner: any = null;
 
-        if (isScanning && scanStatus === 'IDLE') {
-            // Import dinámico para evitar error of window is not defined en Next.js SSR
-            import('html5-qrcode').then(({ Html5QrcodeScanner }) => {
-                scanner = new Html5QrcodeScanner("reader", {
-                    fps: 10,
-                    qrbox: { width: 250, height: 250 },
-                }, false);
+        import('html5-qrcode').then(({ Html5QrcodeScanner }) => {
+            if (!isMounted) return;
 
-                scanner.render(async (decodedText: string) => {
-                    scanner.pause();
-                    setIsScanning(false);
-                    try {
-                        const parsedId = Number(decodedText);
-                        if (isNaN(parsedId)) {
-                            throw new Error("Invalid QR Code: Not a valid numeric user ID");
-                        }
-                        const res = await accessService.scan(parsedId);
-                        setScanResult(res);
-                        setScanStatus(res.status as any);
+            scanner = new Html5QrcodeScanner("reader", {
+                fps: 10,
+                qrbox: { width: 250, height: 250 },
+            }, false);
 
-                        // Reset back to scanner after 4 seconds
-                        setTimeout(() => {
-                            setScanStatus('IDLE');
-                            setScanResult(null);
-                            setIsScanning(true);
-                            if (scanner) {
-                                scanner.resume();
-                            }
-                        }, 4000);
+            scanner.render(async (decodedText: string) => {
+                scanner.pause();
 
-                    } catch (error) {
-                        console.error('Scan Error:', error);
-                        setScanStatus('DENIED');
-                        setScanResult({ message: 'Error de Lectura QR' });
-
-                        setTimeout(() => {
-                            setScanStatus('IDLE');
-                            setScanResult(null);
-                            setIsScanning(true);
-                            if (scanner) {
-                                scanner.resume();
-                            }
-                        }, 4000);
+                try {
+                    const parsedId = Number(decodedText);
+                    if (isNaN(parsedId)) {
+                        throw new Error("Invalid QR Code");
                     }
-                }, (error: any) => {
-                    // ignorar los fallos contínuos por no detectar un qr en el frame
-                });
-            });
-        }
+                    const res = await accessService.scan(parsedId);
+                    setScanResult(res);
+                    setScanStatus(res.status as any);
 
+                    setTimeout(() => {
+                        setScanStatus('IDLE');
+                        setScanResult(null);
+                        if (scanner) scanner.resume();
+                    }, 4000);
+
+                } catch (error) {
+                    console.error('Scan Error:', error);
+                    setScanStatus('DENIED');
+                    setScanResult({ message: 'Error de Lectura QR' });
+
+                    setTimeout(() => {
+                        setScanStatus('IDLE');
+                        setScanResult(null);
+                        if (scanner) scanner.resume();
+                    }, 4000);
+                }
+            }, (error: any) => {
+                // ignorar
+            });
+        });
+
+        // CLEANUP VITAL: Destruir la instancia al salir de la página
         return () => {
+            isMounted = false;
             if (scanner) {
-                scanner.clear().catch((error: any) => console.error("Failed to clear html5QrcodeScanner. ", error));
+                scanner.clear().catch((error: any) => console.error("Error limpiando el escáner:", error));
             }
         };
-    }, [isScanning, scanStatus]);
+    }, []);
 
     let bgClass = "bg-black/95";
     if (scanStatus === 'GRANTED') bgClass = "bg-green-600";
@@ -92,20 +86,40 @@ export default function AccesoScanner() {
                 {/* Main Content Area */}
                 <div className="w-full max-w-2xl text-center">
 
-                    {scanStatus === 'IDLE' && (
-                        <div className="flex flex-col items-center animate-in fade-in zoom-in duration-500">
-                            <h1 className="text-4xl md:text-5xl font-extrabold text-white mb-8 tracking-tight drop-shadow-lg">
-                                Escanee su Acceso
-                            </h1>
-                            <div className="rounded-3xl border-8 border-emerald-500/50 bg-black overflow-hidden shadow-2xl shadow-emerald-500/20 max-w-md w-full relative">
-                                <div id="reader" className="w-full h-full [&>div]:border-none [&>video]:object-cover" suppressHydrationWarning></div>
-                                {/* CSS overlay to make html5-qrcode look better could be applied externally, we just rely on the container shape here */}
-                            </div>
-                            <p className="mt-8 text-emerald-400 font-medium text-lg tracking-wide uppercase">
-                                Torniquete de Entrada Activo
-                            </p>
+                    <div className={scanStatus === 'IDLE' ? "flex flex-col items-center animate-in fade-in zoom-in duration-500" : "hidden"}>
+                        <h1 className="text-4xl md:text-5xl font-extrabold text-white mb-8 tracking-tight drop-shadow-lg">
+                            Escanee su Acceso
+                        </h1>
+
+                        {/* Estilos forzados para la librería de QR */}
+                        <style dangerouslySetInnerHTML={{
+                            __html: `
+                        #reader { border: none !important; border-radius: 1rem; overflow: hidden; background: #18181b; }
+                        #reader__scan_region { background: #000; }
+                        #reader__dashboard_section_csr button { 
+                            background-color: #059669 !important; /* Emerald 600 */
+                            color: white !important; 
+                            border: none !important; 
+                            padding: 10px 20px !important; 
+                            border-radius: 8px !important; 
+                            font-weight: bold !important; 
+                            cursor: pointer !important;
+                            margin-top: 10px !important;
+                            transition: all 0.3s ease;
+                        }
+                        #reader__dashboard_section_csr button:hover { background-color: #047857 !important; /* Emerald 700 */ }
+                        #reader__dashboard_section_swaplink { color: #10b981 !important; text-decoration: none !important; }
+                        `}} />
+
+                        {/* Contenedor Principal del Lector */}
+                        <div className="relative p-2 bg-zinc-900 rounded-2xl shadow-2xl shadow-emerald-900/20 border border-zinc-800 w-full max-w-md mx-auto">
+                            <div id="reader" className="w-full"></div>
                         </div>
-                    )}
+
+                        <p className="mt-8 text-emerald-400 font-medium text-lg tracking-wide uppercase">
+                            Torniquete de Entrada Activo
+                        </p>
+                    </div>
 
                     {scanStatus === 'GRANTED' && scanResult && (
                         <div className="text-white animate-in slide-in-from-bottom-10 fade-in duration-500">
