@@ -26,6 +26,9 @@ export default function LoginPage() {
 
     return (
         <div className="flex min-h-screen flex-col items-center justify-center bg-zinc-950 px-4 text-white">
+            <div className="bg-red-500 p-4 text-white font-bold text-center w-full max-w-md rounded-lg mb-8">
+                PRUEBA TAILWIND (NUCLEAR FIX)
+            </div>
             <div className="w-full max-w-md space-y-8">
                 {/* Header/Title */}
                 <div className="text-center">
