@@ -12,7 +12,7 @@ export const membersService = {
         paymentAmount: number;
         paymentMethod: string;
     }) => {
-        const response = await apiClient.post('/memberships', data);
+        const response = await apiClient.post('/memberships/register', data);
         return response.data;
     }
 };

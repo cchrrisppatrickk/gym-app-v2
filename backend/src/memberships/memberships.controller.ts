@@ -4,11 +4,17 @@ import { MembershipsService } from './memberships.service';
 import { CreateMembershipDto } from './dto/create-membership.dto';
 import { PayDebtDto } from './dto/pay-debt.dto';
 import { FreezeMembershipDto } from './dto/freeze-membership.dto';
+import { RegisterMemberDto } from './dto/register-member.dto';
 
 @UseGuards(AuthGuard('jwt'))
 @Controller('memberships')
 export class MembershipsController {
     constructor(private readonly membershipsService: MembershipsService) { }
+
+    @Post('register')
+    registerNewMember(@Body() dto: RegisterMemberDto) {
+        return this.membershipsService.registerNewMember(dto);
+    }
 
     @Post()
     async create(@Request() req: any, @Body() createMembershipDto: CreateMembershipDto) {
