@@ -17,6 +17,7 @@ const common_1 = require("@nestjs/common");
 const passport_1 = require("@nestjs/passport");
 const sales_service_1 = require("./sales.service");
 const create_product_sale_dto_1 = require("./dto/create-product-sale.dto");
+const create_day_pass_dto_1 = require("./dto/create-day-pass.dto");
 let SalesController = class SalesController {
     salesService;
     constructor(salesService) {
@@ -24,6 +25,9 @@ let SalesController = class SalesController {
     }
     async sellProducts(req, dto) {
         return this.salesService.sellProducts(req.user.userId, dto);
+    }
+    async sellDayPass(req, dto) {
+        return this.salesService.sellDayPass(req.user.userId, dto);
     }
 };
 exports.SalesController = SalesController;
@@ -35,6 +39,14 @@ __decorate([
     __metadata("design:paramtypes", [Object, create_product_sale_dto_1.CreateProductSaleDto]),
     __metadata("design:returntype", Promise)
 ], SalesController.prototype, "sellProducts", null);
+__decorate([
+    (0, common_1.Post)('day-pass'),
+    __param(0, (0, common_1.Request)()),
+    __param(1, (0, common_1.Body)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Object, create_day_pass_dto_1.CreateDayPassDto]),
+    __metadata("design:returntype", Promise)
+], SalesController.prototype, "sellDayPass", null);
 exports.SalesController = SalesController = __decorate([
     (0, common_1.UseGuards)((0, passport_1.AuthGuard)('jwt')),
     (0, common_1.Controller)('sales'),

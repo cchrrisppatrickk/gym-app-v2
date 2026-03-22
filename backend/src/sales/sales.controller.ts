@@ -2,6 +2,7 @@ import { Body, Controller, Post, Request, UseGuards } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
 import { SalesService } from './sales.service';
 import { CreateProductSaleDto } from './dto/create-product-sale.dto';
+import { CreateDayPassDto } from './dto/create-day-pass.dto';
 
 @UseGuards(AuthGuard('jwt'))
 @Controller('sales')
@@ -11,5 +12,10 @@ export class SalesController {
     @Post('products')
     async sellProducts(@Request() req: any, @Body() dto: CreateProductSaleDto) {
         return this.salesService.sellProducts(req.user.userId, dto);
+    }
+
+    @Post('day-pass')
+    async sellDayPass(@Request() req: any, @Body() dto: CreateDayPassDto) {
+        return this.salesService.sellDayPass(req.user.userId, dto);
     }
 }

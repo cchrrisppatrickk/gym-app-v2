@@ -2,7 +2,9 @@ import { BadRequestException, Injectable } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { CashRegisterService } from '../cash-register/cash-register.service';
 import { CreateProductSaleDto } from './dto/create-product-sale.dto';
+import { CreateDayPassDto } from './dto/create-day-pass.dto';
 import { SaleType } from '@prisma/client';
+import * as crypto from 'crypto';
 
 @Injectable()
 export class SalesService {
@@ -92,6 +94,48 @@ export class SalesService {
                 where: { id: sale.id },
                 include: { details: true },
             });
+        });
+    }
+
+    async sellDayPass(employeeId: number, dto: CreateDayPassDto) {
+        // 1. Validar Caja Abierta
+        const openBox = await this.cashRegisterService.getOpenBox(employeeId);
+        if (!openBox) {
+            throw new BadRequestException('Debe abrir caja antes de vender.');
+        }
+
+        // 2. Generar Código QR y Fecha de Validez
+        const qrCode = crypto.randomUUID();
+        const validDate = new Date();
+
+        // 3. Transacción Atómica
+        return this.prisma.$transaction(async (tx) => {
+            // Crear la Venta
+            const sale = await tx.sale.create({
+                data: {
+                    cashRegisterId: openBox.id,
+                    type: SaleType.DAY_PASS,
+                    total: dto.price,
+                    paymentMethod: dto.paymentMethod,
+                },
+            });
+
+            // Crear el Day Pass
+            const dayPass = await tx.dayPass.create({
+                data: {
+                    saleId: sale.id,
+                    code: qrCode,
+                    buyerName: dto.buyerName,
+                    dni: dto.dni,
+                    validDate: validDate,
+                },
+            });
+
+            return {
+                message: 'Venta de Pase Diario exitosa',
+                sale,
+                qrCode: dayPass.code,
+            };
         });
     }
 }
