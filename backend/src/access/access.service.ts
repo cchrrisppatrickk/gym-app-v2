@@ -70,18 +70,21 @@ export class AccessService {
             return { status: 'RED', message: 'Acceso Denegado' };
         }
 
-        // Regla 4: Turno (Comparación de horas manual)
+        // Regla 4: Turno (Comparación estandarizada en UTC)
         const { shift } = membership;
-        const currentMinutes = now.getHours() * 60 + now.getMinutes();
 
-        // Prisma @db.Time devuelve objetos Date (generalmente anclados a 1970)
+        // Convertimos la hora actual a una cadena ISO y extraemos horas/minutos en UTC
+        // para que coincida exactamente con cómo Prisma extrae su @db.Time
+        const currentUtcHours = now.getUTCHours();
+        const currentUtcMinutes = now.getUTCMinutes();
+        const currentMinutes = (currentUtcHours * 60) + currentUtcMinutes;
+
         const startObj = new Date(shift.startTime);
         const endObj = new Date(shift.endTime);
 
-        const startMinutes = startObj.getUTCHours() * 60 + startObj.getUTCMinutes();
-        const endMinutes = endObj.getUTCHours() * 60 + endObj.getUTCMinutes();
+        const startMinutes = (startObj.getUTCHours() * 60) + startObj.getUTCMinutes();
+        const endMinutes = (endObj.getUTCHours() * 60) + endObj.getUTCMinutes();
 
-        // Nota: endMinutes podría ser menor si cruza la medianoche (no manejado ahora por simplicidad)
         if (currentMinutes < startMinutes || currentMinutes > endMinutes) {
             await this.prisma.attendance.create({
                 data: {

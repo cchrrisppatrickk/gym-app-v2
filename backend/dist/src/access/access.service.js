@@ -69,11 +69,13 @@ let AccessService = class AccessService {
             return { status: 'RED', message: 'Acceso Denegado' };
         }
         const { shift } = membership;
-        const currentMinutes = now.getHours() * 60 + now.getMinutes();
+        const currentUtcHours = now.getUTCHours();
+        const currentUtcMinutes = now.getUTCMinutes();
+        const currentMinutes = (currentUtcHours * 60) + currentUtcMinutes;
         const startObj = new Date(shift.startTime);
         const endObj = new Date(shift.endTime);
-        const startMinutes = startObj.getUTCHours() * 60 + startObj.getUTCMinutes();
-        const endMinutes = endObj.getUTCHours() * 60 + endObj.getUTCMinutes();
+        const startMinutes = (startObj.getUTCHours() * 60) + startObj.getUTCMinutes();
+        const endMinutes = (endObj.getUTCHours() * 60) + endObj.getUTCMinutes();
         if (currentMinutes < startMinutes || currentMinutes > endMinutes) {
             await this.prisma.attendance.create({
                 data: {
