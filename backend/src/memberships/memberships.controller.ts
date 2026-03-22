@@ -1,4 +1,4 @@
-import { Body, Controller, Post, Request, UseGuards, Param, ParseIntPipe } from '@nestjs/common';
+import { Body, Controller, Get, Post, Request, UseGuards, Param, ParseIntPipe } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
 import { MembershipsService } from './memberships.service';
 import { CreateMembershipDto } from './dto/create-membership.dto';
@@ -10,9 +10,14 @@ import { FreezeMembershipDto } from './dto/freeze-membership.dto';
 export class MembershipsController {
     constructor(private readonly membershipsService: MembershipsService) { }
 
+    @Get()
+    findAll() {
+        return this.membershipsService.findAll();
+    }
+
     @Post()
-    async create(@Request() req: any, @Body() createMembershipDto: CreateMembershipDto) {
-        return this.membershipsService.createMembership(req.user.userId, createMembershipDto);
+    create(@Body() createMembershipDto: CreateMembershipDto) {
+        return this.membershipsService.create(createMembershipDto);
     }
 
     @Post(':id/pay')

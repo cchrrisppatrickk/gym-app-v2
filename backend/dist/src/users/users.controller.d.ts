@@ -13,14 +13,14 @@ export declare class UsersController {
     }[]>;
     create(createUserDto: CreateUserDto): Promise<{
         id: number;
-        roleId: number;
         dni: string | null;
         email: string | null;
+        qrCode: string | null;
+        roleId: number;
         password: string | null;
         fullName: string;
         phone: string | null;
         photoUrl: string | null;
-        qrCode: string | null;
         isActive: boolean;
         createdAt: Date;
         updatedAt: Date;

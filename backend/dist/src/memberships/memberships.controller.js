@@ -24,8 +24,11 @@ let MembershipsController = class MembershipsController {
     constructor(membershipsService) {
         this.membershipsService = membershipsService;
     }
-    async create(req, createMembershipDto) {
-        return this.membershipsService.createMembership(req.user.userId, createMembershipDto);
+    findAll() {
+        return this.membershipsService.findAll();
+    }
+    create(createMembershipDto) {
+        return this.membershipsService.create(createMembershipDto);
     }
     async payDebt(id, payDebtDto, req) {
         return this.membershipsService.payDebt(req.user.userId, id, payDebtDto);
@@ -36,12 +39,17 @@ let MembershipsController = class MembershipsController {
 };
 exports.MembershipsController = MembershipsController;
 __decorate([
-    (0, common_1.Post)(),
-    __param(0, (0, common_1.Request)()),
-    __param(1, (0, common_1.Body)()),
+    (0, common_1.Get)(),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [Object, create_membership_dto_1.CreateMembershipDto]),
-    __metadata("design:returntype", Promise)
+    __metadata("design:paramtypes", []),
+    __metadata("design:returntype", void 0)
+], MembershipsController.prototype, "findAll", null);
+__decorate([
+    (0, common_1.Post)(),
+    __param(0, (0, common_1.Body)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [create_membership_dto_1.CreateMembershipDto]),
+    __metadata("design:returntype", void 0)
 ], MembershipsController.prototype, "create", null);
 __decorate([
     (0, common_1.Post)(':id/pay'),

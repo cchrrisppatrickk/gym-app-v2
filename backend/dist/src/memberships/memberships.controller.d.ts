@@ -5,16 +5,31 @@ import { FreezeMembershipDto } from './dto/freeze-membership.dto';
 export declare class MembershipsController {
     private readonly membershipsService;
     constructor(membershipsService: MembershipsService);
-    create(req: any, createMembershipDto: CreateMembershipDto): Promise<({
-        payments: {
+    findAll(): Promise<({
+        user: {
             id: number;
-            membershipId: number;
-            cashRegisterId: number;
-            amount: import("@prisma/client/runtime/library").Decimal;
-            paymentMethod: string;
-            date: Date;
-            notes: string | null;
-        }[];
+            createdAt: Date;
+            updatedAt: Date;
+            roleId: number;
+            dni: string | null;
+            email: string | null;
+            password: string | null;
+            fullName: string;
+            phone: string | null;
+            photoUrl: string | null;
+            qrCode: string | null;
+            isActive: boolean;
+            deletedAt: Date | null;
+        };
+        plan: {
+            id: number;
+            name: string;
+            deletedAt: Date | null;
+            durationDays: number;
+            price: import("@prisma/client/runtime/library").Decimal;
+            allowsFreeze: boolean;
+            description: string | null;
+        };
     } & {
         id: number;
         userId: number;
@@ -27,17 +42,30 @@ export declare class MembershipsController {
         pendingBalance: import("@prisma/client/runtime/library").Decimal;
         createdAt: Date;
         updatedAt: Date;
-    }) | null>;
+    })[]>;
+    create(createMembershipDto: CreateMembershipDto): Promise<{
+        id: number;
+        userId: number;
+        planId: number;
+        shiftId: number;
+        startDate: Date;
+        endDate: Date;
+        status: import("@prisma/client").$Enums.MembershipStatus;
+        totalPrice: import("@prisma/client/runtime/library").Decimal;
+        pendingBalance: import("@prisma/client/runtime/library").Decimal;
+        createdAt: Date;
+        updatedAt: Date;
+    }>;
     payDebt(id: number, payDebtDto: PayDebtDto, req: any): Promise<{
         message: string;
         payment: {
             id: number;
-            membershipId: number;
-            cashRegisterId: number;
             amount: import("@prisma/client/runtime/library").Decimal;
             paymentMethod: string;
             date: Date;
             notes: string | null;
+            membershipId: number;
+            cashRegisterId: number;
         };
         newPendingBalance: number;
     }>;

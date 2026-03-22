@@ -21,89 +21,32 @@ let MembershipsService = class MembershipsService {
         this.prisma = prisma;
         this.cashRegisterService = cashRegisterService;
     }
-    async registerNewMember(dto) {
-        const activeBox = await this.prisma.cashRegister.findFirst({ where: { status: 'OPEN' } });
-        if (!activeBox && dto.paymentAmount > 0) {
-            throw new common_1.BadRequestException('Debe abrir la caja antes de registrar un pago.');
-        }
-        const existingUser = await this.prisma.user.findFirst({
-            where: { OR: [{ email: dto.email }, { dni: dto.dni }] },
-        });
-        if (existingUser) {
-            throw new common_1.BadRequestException('El DNI o Email ya está registrado.');
-        }
-        const plan = await this.prisma.plan.findUnique({ where: { id: dto.planId } });
-        if (!plan)
-            throw new common_1.NotFoundException('Plan no encontrado');
-        const startDate = new Date();
-        const endDate = new Date();
-        endDate.setDate(endDate.getDate() + plan.durationDays);
-        const pendingBalance = plan.price.toNumber() - dto.paymentAmount;
-        return this.prisma.$transaction(async (tx) => {
-            const user = await tx.user.create({
-                data: {
-                    fullName: `${dto.firstName} ${dto.lastName}`, dni: dto.dni,
-                    email: dto.email, phone: dto.phone,
-                    password: 'password_generico_cambiar', roleId: 3,
-                },
-            });
-            const membership = await tx.membership.create({
-                data: {
-                    userId: user.id, planId: dto.planId, shiftId: dto.shiftId,
-                    startDate, endDate, status: 'ACTIVE',
-                    totalPrice: plan.price.toNumber(), pendingBalance,
-                },
-            });
-            if (dto.paymentAmount > 0 && activeBox) {
-                await tx.payment.create({
-                    data: {
-                        membershipId: membership.id, cashRegisterId: activeBox.id,
-                        amount: dto.paymentAmount, paymentMethod: dto.paymentMethod,
-                    },
-                });
-            }
-            return membership;
+    async findAll() {
+        return this.prisma.membership.findMany({
+            include: { user: true, plan: true },
+            orderBy: { createdAt: 'desc' }
         });
     }
-    async createMembership(employeeId, dto) {
-        const openBox = await this.cashRegisterService.getOpenBox(employeeId);
-        if (!openBox) {
-            throw new common_1.BadRequestException('Debe abrir caja antes de vender una membresía.');
-        }
+    async create(dto) {
         const plan = await this.prisma.plan.findUnique({
             where: { id: dto.planId },
         });
         if (!plan) {
-            throw new common_1.BadRequestException('El plan seleccionado no existe.');
+            throw new common_1.NotFoundException('El plan seleccionado no existe.');
         }
         const startDate = new Date();
         const endDate = new Date(startDate.getTime() + plan.durationDays * 24 * 60 * 60 * 1000);
-        const pendingBalance = plan.price.toNumber() - dto.paymentAmount;
-        return this.prisma.$transaction(async (tx) => {
-            const membership = await tx.membership.create({
-                data: {
-                    userId: dto.userId,
-                    planId: dto.planId,
-                    shiftId: dto.shiftId,
-                    startDate,
-                    endDate,
-                    status: client_1.MembershipStatus.ACTIVE,
-                    totalPrice: plan.price.toNumber(),
-                    pendingBalance,
-                },
-            });
-            await tx.payment.create({
-                data: {
-                    membershipId: membership.id,
-                    cashRegisterId: openBox.id,
-                    amount: dto.paymentAmount,
-                    paymentMethod: dto.paymentMethod,
-                },
-            });
-            return tx.membership.findUnique({
-                where: { id: membership.id },
-                include: { payments: true },
-            });
+        return this.prisma.membership.create({
+            data: {
+                userId: dto.userId,
+                planId: dto.planId,
+                shiftId: dto.shiftId,
+                startDate,
+                endDate,
+                status: client_1.MembershipStatus.ACTIVE,
+                totalPrice: plan.price.toNumber(),
+                pendingBalance: plan.price.toNumber(),
+            },
         });
     }
     async payDebt(employeeId, membershipId, dto) {

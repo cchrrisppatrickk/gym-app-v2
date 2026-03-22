@@ -13,7 +13,8 @@ import {
     Users,
     ShoppingBag,
     ClipboardList,
-    Clock
+    Clock,
+    CreditCard
 } from "lucide-react";
 
 const navigation = [
@@ -22,6 +23,7 @@ const navigation = [
     { name: "Kiosko POS", href: "/kiosko", icon: ShoppingCart, roles: [1, 2] },
     { name: "Torniquete", href: "/acceso", icon: ScanFace, roles: [1, 2] },
     { name: "Socios", href: "/admin/socios", icon: Users, roles: [1, 2] },
+    { name: "Gestor de Membresías", href: "/admin/membresias", icon: CreditCard, roles: [1, 2] },
     { name: "Productos (Kiosko)", href: "/admin/config/productos", icon: ShoppingBag, roles: [1] },
     { name: "Planes de Membresía", href: "/admin/config/planes", icon: ClipboardList, roles: [1] },
     { name: "Turnos (Horarios)", href: "/admin/config/turnos", icon: Clock, roles: [1] },
