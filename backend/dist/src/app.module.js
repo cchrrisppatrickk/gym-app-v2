@@ -16,6 +16,7 @@ const access_module_1 = require("./access/access.module");
 const cash_register_module_1 = require("./cash-register/cash-register.module");
 const catalog_module_1 = require("./catalog/catalog.module");
 const roles_module_1 = require("./roles/roles.module");
+const sales_module_1 = require("./sales/sales.module");
 let AppModule = class AppModule {
 };
 exports.AppModule = AppModule;
@@ -30,6 +31,7 @@ exports.AppModule = AppModule = __decorate([
             cash_register_module_1.CashRegisterModule,
             catalog_module_1.CatalogModule,
             roles_module_1.RolesModule,
+            sales_module_1.SalesModule,
         ],
     })
 ], AppModule);
