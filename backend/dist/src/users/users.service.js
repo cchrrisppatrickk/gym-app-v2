@@ -52,6 +52,17 @@ let UsersService = class UsersService {
         this.prisma = prisma;
     }
     async createUser(dto) {
+        const existingUser = await this.prisma.user.findFirst({
+            where: {
+                OR: [
+                    { email: dto.email },
+                    { dni: dto.dni },
+                ],
+            },
+        });
+        if (existingUser) {
+            throw new common_1.BadRequestException('El DNI o Email ya está registrado.');
+        }
         const salt = 10;
         let hashedPassword = null;
         if (dto.password) {
@@ -61,7 +72,21 @@ let UsersService = class UsersService {
             data: {
                 ...dto,
                 password: hashedPassword,
+                roleId: dto.roleId || 3,
             },
+        });
+    }
+    async findAll() {
+        return this.prisma.user.findMany({
+            where: { roleId: 3 },
+            select: {
+                id: true,
+                fullName: true,
+                dni: true,
+                email: true,
+                phone: true,
+                isActive: true,
+            }
         });
     }
     async findByEmail(email) {

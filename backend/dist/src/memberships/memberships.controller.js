@@ -19,14 +19,10 @@ const memberships_service_1 = require("./memberships.service");
 const create_membership_dto_1 = require("./dto/create-membership.dto");
 const pay_debt_dto_1 = require("./dto/pay-debt.dto");
 const freeze_membership_dto_1 = require("./dto/freeze-membership.dto");
-const register_member_dto_1 = require("./dto/register-member.dto");
 let MembershipsController = class MembershipsController {
     membershipsService;
     constructor(membershipsService) {
         this.membershipsService = membershipsService;
-    }
-    registerNewMember(dto) {
-        return this.membershipsService.registerNewMember(dto);
     }
     async create(req, createMembershipDto) {
         return this.membershipsService.createMembership(req.user.userId, createMembershipDto);
@@ -39,13 +35,6 @@ let MembershipsController = class MembershipsController {
     }
 };
 exports.MembershipsController = MembershipsController;
-__decorate([
-    (0, common_1.Post)('register'),
-    __param(0, (0, common_1.Body)()),
-    __metadata("design:type", Function),
-    __metadata("design:paramtypes", [register_member_dto_1.RegisterMemberDto]),
-    __metadata("design:returntype", void 0)
-], MembershipsController.prototype, "registerNewMember", null);
 __decorate([
     (0, common_1.Post)(),
     __param(0, (0, common_1.Request)()),
