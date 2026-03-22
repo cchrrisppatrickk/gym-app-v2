@@ -10,27 +10,27 @@ export declare class SalesService {
         details: {
             id: number;
             saleId: number;
-            productId: number;
             quantity: number;
             unitPrice: import("@prisma/client/runtime/library").Decimal;
+            productId: number;
         }[];
     } & {
         id: number;
+        paymentMethod: string;
+        date: Date;
         cashRegisterId: number;
         type: import("@prisma/client").$Enums.SaleType;
         total: import("@prisma/client/runtime/library").Decimal;
-        paymentMethod: string;
-        date: Date;
     }) | null>;
     sellDayPass(employeeId: number, dto: CreateDayPassDto): Promise<{
         message: string;
         sale: {
             id: number;
+            paymentMethod: string;
+            date: Date;
             cashRegisterId: number;
             type: import("@prisma/client").$Enums.SaleType;
             total: import("@prisma/client/runtime/library").Decimal;
-            paymentMethod: string;
-            date: Date;
         };
         qrCode: string;
     }>;
