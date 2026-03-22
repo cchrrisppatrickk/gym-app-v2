@@ -30,8 +30,9 @@ export class MembershipsService {
         }
 
         // 2. Cálculos de Fechas y Balance
-        const startDate = new Date();
-        const endDate = new Date(startDate.getTime() + plan.durationDays * 24 * 60 * 60 * 1000);
+        const start = dto.startDate ? new Date(dto.startDate) : new Date();
+        const end = new Date(start);
+        end.setDate(end.getDate() + plan.durationDays);
 
         // 3. Crear Membresía con 100% deuda
         return this.prisma.membership.create({
@@ -39,8 +40,8 @@ export class MembershipsService {
                 userId: dto.userId,
                 planId: dto.planId,
                 shiftId: dto.shiftId,
-                startDate,
-                endDate,
+                startDate: start,
+                endDate: end,
                 status: MembershipStatus.ACTIVE,
                 totalPrice: plan.price.toNumber(),
                 pendingBalance: plan.price.toNumber(), // <--- El 100% se va a deuda inicial

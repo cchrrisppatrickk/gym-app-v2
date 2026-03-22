@@ -34,15 +34,16 @@ let MembershipsService = class MembershipsService {
         if (!plan) {
             throw new common_1.NotFoundException('El plan seleccionado no existe.');
         }
-        const startDate = new Date();
-        const endDate = new Date(startDate.getTime() + plan.durationDays * 24 * 60 * 60 * 1000);
+        const start = dto.startDate ? new Date(dto.startDate) : new Date();
+        const end = new Date(start);
+        end.setDate(end.getDate() + plan.durationDays);
         return this.prisma.membership.create({
             data: {
                 userId: dto.userId,
                 planId: dto.planId,
                 shiftId: dto.shiftId,
-                startDate,
-                endDate,
+                startDate: start,
+                endDate: end,
                 status: client_1.MembershipStatus.ACTIVE,
                 totalPrice: plan.price.toNumber(),
                 pendingBalance: plan.price.toNumber(),

@@ -7,7 +7,8 @@ import { usersService } from "@/services/users.service";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
-import { Users, Plus, X, User } from "lucide-react";
+import { Users, Plus, X, User, QrCode } from "lucide-react";
+import { QRCodeSVG } from 'qrcode.react';
 
 const userSchema = z.object({
     firstName: z.string().min(2, "El nombre debe tener al menos 2 caracteres"),
@@ -24,6 +25,7 @@ export default function Socios() {
     const [isLoading, setIsLoading] = useState(true);
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [serverError, setServerError] = useState("");
+    const [qrModalUser, setQrModalUser] = useState<any>(null);
 
     const {
         register,
@@ -113,6 +115,7 @@ export default function Socios() {
                                             <th className="px-6 py-4 font-bold tracking-wider">Teléfono</th>
                                             <th className="px-6 py-4 font-bold tracking-wider">Email</th>
                                             <th className="px-6 py-4 font-bold tracking-wider text-right">Estado</th>
+                                            <th className="px-6 py-4 font-bold tracking-wider text-center">Acciones</th>
                                         </tr>
                                     </thead>
                                     <tbody className="divide-y divide-zinc-800/50">
@@ -138,11 +141,20 @@ export default function Socios() {
                                                         {user.isActive ? 'Activo' : 'Inactivo'}
                                                     </span>
                                                 </td>
+                                                <td className="whitespace-nowrap px-6 py-4 text-center">
+                                                    <button
+                                                        onClick={() => setQrModalUser(user)}
+                                                        className="inline-flex items-center gap-1.5 rounded-lg bg-emerald-500/10 px-3 py-1.5 text-xs font-bold text-emerald-500 transition-colors hover:bg-emerald-500 hover:text-white border border-emerald-500/20"
+                                                    >
+                                                        <QrCode className="h-4 w-4" />
+                                                        Ver QR
+                                                    </button>
+                                                </td>
                                             </tr>
                                         ))}
                                         {users.length === 0 && (
                                             <tr>
-                                                <td colSpan={6} className="px-6 py-12 text-center text-zinc-500">
+                                                <td colSpan={7} className="px-6 py-12 text-center text-zinc-500">
                                                     No hay socios registrados en el sistema.
                                                 </td>
                                             </tr>
@@ -242,6 +254,40 @@ export default function Socios() {
                                     </button>
                                 </div>
                             </form>
+                        </div>
+                    </div>
+                )}
+
+                {/* Modal de Código QR */}
+                {qrModalUser && (
+                    <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+                        <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={() => setQrModalUser(null)} />
+                        <div className="relative w-full max-w-sm rounded-2xl border border-zinc-800 bg-zinc-950 p-6 shadow-2xl text-center">
+
+                            <div className="flex items-center justify-between mb-4">
+                                <h3 className="text-xl font-bold text-white flex items-center gap-2">
+                                    <QrCode className="h-5 w-5 text-emerald-500" />
+                                    Código de Acceso
+                                </h3>
+                                <button
+                                    onClick={() => setQrModalUser(null)}
+                                    className="rounded-lg p-2 text-zinc-400 hover:bg-zinc-800 hover:text-white"
+                                >
+                                    <X className="h-5 w-5" />
+                                </button>
+                            </div>
+
+                            <p className="text-lg font-medium text-white mb-6">
+                                {qrModalUser.fullName}
+                            </p>
+
+                            <div className="bg-white p-4 rounded-xl inline-block mx-auto mb-6">
+                                <QRCodeSVG value={String(qrModalUser.id)} size={256} />
+                            </div>
+
+                            <p className="text-sm font-medium text-zinc-400">
+                                Escanea este código en el Torniquete
+                            </p>
                         </div>
                     </div>
                 )}

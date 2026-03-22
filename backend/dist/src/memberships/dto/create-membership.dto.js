@@ -15,6 +15,7 @@ class CreateMembershipDto {
     userId;
     planId;
     shiftId;
+    startDate;
 }
 exports.CreateMembershipDto = CreateMembershipDto;
 __decorate([
@@ -29,4 +30,9 @@ __decorate([
     (0, class_validator_1.IsNumber)(),
     __metadata("design:type", Number)
 ], CreateMembershipDto.prototype, "shiftId", void 0);
+__decorate([
+    (0, class_validator_1.IsOptional)(),
+    (0, class_validator_1.IsString)(),
+    __metadata("design:type", String)
+], CreateMembershipDto.prototype, "startDate", void 0);
 //# sourceMappingURL=create-membership.dto.js.map

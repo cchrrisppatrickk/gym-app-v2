@@ -5,7 +5,7 @@ export const membershipsService = {
         const { data } = await apiClient.get('/memberships');
         return data;
     },
-    create: async (payload: { userId: number; planId: number; shiftId: number }) => {
+    create: async (payload: { userId: number; planId: number; shiftId: number; startDate?: string }) => {
         const { data } = await apiClient.post('/memberships', payload);
         return data;
     },

@@ -15,6 +15,7 @@ const membershipSchema = z.object({
     userId: z.number().min(1, "Selecciona un socio"),
     planId: z.number().min(1, "Selecciona un plan"),
     shiftId: z.number().min(1, "Selecciona un turno"),
+    startDate: z.string().optional(),
 });
 
 const paymentSchema = z.object({
@@ -110,11 +111,14 @@ export default function Membresias() {
     const onSubmit = async (values: MembershipFormValues) => {
         setServerError("");
         try {
-            const formattedData = {
+            const formattedData: any = {
                 userId: Number(values.userId),
                 planId: Number(values.planId),
                 shiftId: Number(values.shiftId),
             };
+            if (values.startDate) {
+                formattedData.startDate = values.startDate;
+            }
 
             await membershipsService.create(formattedData);
             setIsModalOpen(false);
@@ -187,6 +191,7 @@ export default function Membresias() {
                                             <th className="px-6 py-4 font-bold tracking-wider">Plan</th>
                                             <th className="px-6 py-4 font-bold tracking-wider">Fin</th>
                                             <th className="px-6 py-4 font-bold tracking-wider">Estado</th>
+                                            <th className="px-6 py-4 font-bold tracking-wider">Días Restantes</th>
                                             <th className="px-6 py-4 font-bold tracking-wider text-right">Deuda</th>
                                             <th className="px-6 py-4 font-bold tracking-wider text-center">Acciones</th>
                                         </tr>
@@ -213,6 +218,16 @@ export default function Membresias() {
                                                             {mem.status}
                                                         </span>
                                                     </td>
+                                                    <td className="whitespace-nowrap px-6 py-4 font-bold">
+                                                        {(() => {
+                                                            const diffTime = new Date(mem.endDate).getTime() - new Date().getTime();
+                                                            const remainingDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+                                                            if (remainingDays < 0) {
+                                                                return <span className="text-red-500 italic">Vencida</span>;
+                                                            }
+                                                            return <span className="text-white">{remainingDays} días</span>;
+                                                        })()}
+                                                    </td>
                                                     <td className="whitespace-nowrap px-6 py-4 text-right font-bold">
                                                         {debt > 0 ? (
                                                             <span className="text-red-400">S/ {debt.toFixed(2)}</span>
@@ -236,7 +251,7 @@ export default function Membresias() {
                                         })}
                                         {memberships.length === 0 && (
                                             <tr>
-                                                <td colSpan={7} className="px-6 py-12 text-center text-zinc-500">
+                                                <td colSpan={8} className="px-6 py-12 text-center text-zinc-500">
                                                     No hay membresías registradas actualmente.
                                                 </td>
                                             </tr>
@@ -318,6 +333,18 @@ export default function Membresias() {
                                             })}
                                         </select>
                                         {errors.shiftId && <p className="text-xs text-red-500 font-semibold">{errors.shiftId.message}</p>}
+                                    </div>
+
+                                    <div className="space-y-1.5">
+                                        <label className="text-xs font-bold uppercase text-zinc-400">Fecha de Inicio (Manual)</label>
+                                        <input
+                                            type="date"
+                                            {...register("startDate")}
+                                            className={`w-full rounded-lg border bg-zinc-900 py-2.5 px-3 text-white focus:outline-none focus:ring-2 focus:ring-emerald-500/50 ${errors.startDate ? 'border-red-500' : 'border-zinc-800'}`}
+                                        />
+                                        <p className="text-[10px] text-zinc-500">
+                                            Dejar en blanco para usar la fecha de hoy. Usar solo para migrar clientes antiguos.
+                                        </p>
                                     </div>
 
                                     <div className="mt-4 rounded-xl border border-amber-500/30 bg-amber-500/10 p-4">
