@@ -20,7 +20,7 @@ const navigation = [
     { name: "Kiosko POS", href: "/kiosko", icon: ShoppingCart, roles: [1, 2] },
     { name: "Torniquete", href: "/acceso", icon: ScanFace, roles: [1, 2] },
     { name: "Miembros", href: "/admin/miembros", icon: Users, roles: [1, 2] },
-    { name: "Configuración", href: "/admin/config", icon: Settings, roles: [1] },
+    { name: "Configuración", href: "/admin/config/productos", icon: Settings, roles: [1] },
 ];
 
 export default function Sidebar() {
@@ -59,8 +59,8 @@ export default function Sidebar() {
                                 key={item.name}
                                 href={item.href}
                                 className={`group flex items-center px-3 py-3 text-sm font-semibold rounded-xl transition-all duration-200 ${isActive
-                                        ? "bg-emerald-600/20 text-emerald-400"
-                                        : "text-zinc-400 hover:bg-zinc-800/60 hover:text-zinc-100"
+                                    ? "bg-emerald-600/20 text-emerald-400"
+                                    : "text-zinc-400 hover:bg-zinc-800/60 hover:text-zinc-100"
                                     }`}
                             >
                                 <Icon
