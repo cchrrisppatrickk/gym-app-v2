@@ -16,5 +16,13 @@ export const catalogService = {
     createPlan: async (planData: { name: string; description?: string; durationDays: number; price: number; allowsFreeze: boolean }) => {
         const { data } = await apiClient.post('/catalog/plans', planData);
         return data;
+    },
+    getShifts: async () => {
+        const { data } = await apiClient.get('/catalog/shifts');
+        return data;
+    },
+    createShift: async (shiftData: { name: string; startTime: string; endTime: string }) => {
+        const { data } = await apiClient.post('/catalog/shifts', shiftData);
+        return data;
     }
 };

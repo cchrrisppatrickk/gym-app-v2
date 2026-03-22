@@ -12,7 +12,8 @@ import {
     ScanFace,
     Users,
     ShoppingBag,
-    ClipboardList
+    ClipboardList,
+    Clock
 } from "lucide-react";
 
 const navigation = [
@@ -23,6 +24,7 @@ const navigation = [
     { name: "Miembros", href: "/admin/miembros", icon: Users, roles: [1, 2] },
     { name: "Productos (Kiosko)", href: "/admin/config/productos", icon: ShoppingBag, roles: [1] },
     { name: "Planes de Membresía", href: "/admin/config/planes", icon: ClipboardList, roles: [1] },
+    { name: "Turnos (Horarios)", href: "/admin/config/turnos", icon: Clock, roles: [1] },
 ];
 
 export default function Sidebar() {
